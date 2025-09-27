@@ -790,6 +790,39 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
       timeOutEl.placeholder = 'Opsional';
     }
   }
+
+  function hydrateManualRow(row) {
+    if (!row) return;
+    if (actionInEl) {
+      const statusIn = (row.masuk_status || '').toLowerCase();
+      let inAction = 'checkin';
+      if (statusIn === 'terlambat') inAction = 'late';
+      else if (statusIn === 'tidak hadir') inAction = 'absent';
+      actionInEl.value = inAction;
+      applyInState(inAction);
+      if (timeInEl && (inAction === 'checkin' || inAction === 'late') && row.first_time) {
+        timeInEl.value = row.first_time;
+      }
+    }
+    if (actionOutEl) {
+      const statusOut = (row.pulang_status || '').toLowerCase();
+      let outAction = 'checkout';
+      if (statusOut === 'bolos') outAction = 'bolos';
+      else if (statusOut === 'pulang') outAction = 'checkout';
+      else outAction = 'clear_checkout';
+      actionOutEl.value = outAction;
+      applyOutState(outAction);
+      if (timeOutEl && outAction === 'checkout' && row.last_time) {
+        timeOutEl.value = row.last_time;
+      }
+    }
+  }
+
+  if (actionInEl && !actionInEl.value) actionInEl.value = 'checkin';
+  if (actionOutEl && !actionOutEl.value) actionOutEl.value = 'checkout';
+  applyInState(actionInEl ? (actionInEl.value || 'checkin') : 'checkin');
+  applyOutState(actionOutEl ? (actionOutEl.value || 'checkout') : 'checkout');
+
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-correct]');
     if (!btn) return;
@@ -802,19 +835,29 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     document.getElementById('editName').textContent = name;
     if (dateInput) dateInput.value = date;
     if (actionInEl) actionInEl.value = 'checkin';
-    if (timeInEl) timeInEl.value = startDefault;
-    applyInState(actionInEl ? actionInEl.value : 'checkin');
+    applyInState('checkin');
     if (actionOutEl) actionOutEl.value = 'checkout';
-    if (timeOutEl) timeOutEl.value = endDefault;
-    applyOutState(actionOutEl ? actionOutEl.value : 'checkout');
+    applyOutState('checkout');
     if (editModal) editModal.show();
+    (async () => {
+      try {
+        const detailUrl = new URL(base + '/api/recap_row.php', window.location.origin);
+        detailUrl.searchParams.set('uid', uid);
+        detailUrl.searchParams.set('date', date);
+        const detailResp = await fetch(detailUrl.toString(), { headers: { 'Accept': 'application/json' }, cache: 'no-store' });
+        const detailJs = await detailResp.json();
+        if (detailJs && detailJs.ok && detailJs.row) {
+          hydrateManualRow(detailJs.row);
+        }
+      } catch (err) {
+        /* ignore load errors */
+      }
+    })();
   });
 
 
   if (actionInEl) actionInEl.addEventListener('change', () => applyInState(actionInEl.value));
   if (actionOutEl) actionOutEl.addEventListener('change', () => applyOutState(actionOutEl.value));
-  applyInState(actionInEl ? actionInEl.value : 'checkin');
-  applyOutState(actionOutEl ? actionOutEl.value : 'checkout');
 
   async function afterManualUpdate() {
     await updateList({});
@@ -829,6 +872,7 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
       const r_ = await fetch(u_.toString(), { headers: { 'Accept':'application/json' }, cache: 'no-store' });
       const js_ = await r_.json();
       if (js_ && js_.ok && js_.row) {
+        hydrateManualRow(js_.row);
         const root = document;
         const codeEl = root.querySelector('code[data-uid="' + uid_ + '"]');
         if (codeEl) {
@@ -851,19 +895,19 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
         }
       }
     } catch (e) {}
-    applyInState(actionInEl ? actionInEl.value : 'checkin');
-    applyOutState(actionOutEl ? actionOutEl.value : 'checkout');
+    applyInState(actionInEl ? (actionInEl.value || 'checkin') : 'checkin');
+    applyOutState(actionOutEl ? (actionOutEl.value || 'checkout') : 'checkout');
   }
 
   async function submitManual(action, timeValue, buttonEl) {
     const uid = document.getElementById('editUid').textContent.trim();
     const date = (document.getElementById('editDate').value||'').trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { alert('Tanggal tidak valid'); return; }
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) { alert('Tanggal tidak valid'); return; }
     let sendTime = timeValue || '';
     if (action === 'checkin' || action === 'late' || action === 'checkout') {
-      if (!/^\d{2}:\d{2}$/.test(sendTime)) { alert('Jam tidak valid'); return; }
+      if (!/^\\d{2}:\\d{2}$/.test(sendTime)) { alert('Jam tidak valid'); return; }
     } else {
-      sendTime = /^\d{2}:\d{2}$/.test(sendTime) ? sendTime : '00:00';
+      sendTime = /^\\d{2}:\\d{2}$/.test(sendTime) ? sendTime : '00:00';
     }
     const originalLabel = buttonEl ? buttonEl.innerHTML : '';
     if (buttonEl) {
@@ -902,7 +946,6 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
       await submitManual(action, timeOutEl ? timeOutEl.value : '', saveEditBtnOut);
     });
   }
-
   // Sync mobile auto-refresh with desktop
   const autoRefreshDesktop = document.getElementById('autoRefresh');
   const autoRefreshMobile = document.getElementById('autoRefreshMobile');

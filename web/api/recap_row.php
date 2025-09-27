@@ -36,10 +36,15 @@ try {
   $overrideMap = build_override_map($pdo, $start, $end);
 
   [$statusMasuk, $statusPulang] = resolve_daily_status($r, $tz, $start, $lateAt, $endAt, $isPastDay, $requireCheckout, $overrideMap);
+  $firstTime = $r['first_ts'] ? (new DateTime($r['first_ts'], $tz))->format('H:i') : null;
+  $lastTime = $r['last_ts'] ? (new DateTime($r['last_ts'], $tz))->format('H:i') : null;
+
 
   echo json_encode(['ok'=>true,'row'=>[
     'name'=>$r['name'], 'uid_hex'=>$r['uid_hex'], 'room'=>$r['room'],
     'masuk_status'=>$statusMasuk, 'pulang_status'=>$statusPulang,
+    'first_ts'=>$r['first_ts'], 'first_time'=>$firstTime,
+    'last_ts'=>$r['last_ts'], 'last_time'=>$lastTime,
   ]]);
 } catch (Throwable $e) {
   http_response_code(500);
