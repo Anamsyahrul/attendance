@@ -1,0 +1,4 @@
+[26-Sep-2025 09:27:35 UTC] PHP Warning:  require_once(../bootstrap.php): Failed to open stream: No such file or directory in C:\laragon\www\attendance\web\api\upload_logo.php on line 7
+[26-Sep-2025 16:27:36 Asia/Jakarta] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in C:\laragon\www\attendance\web\bootstrap.php on line 23
+[26-Sep-2025 16:38:27 Asia/Jakarta] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in C:\laragon\www\attendance\web\bootstrap.php on line 23
+[26-Sep-2025 16:38:27 Asia/Jakarta] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\laragon\www\attendance\web\debug_real_error.php:6) in C:\laragon\www\attendance\web\api\upload_logo.php on line 10

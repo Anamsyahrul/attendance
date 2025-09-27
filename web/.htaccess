@@ -1,0 +1,21 @@
+Options -Indexes
+DirectoryIndex public/index.php
+
+# Dev friendly (disable in production)
+php_flag display_errors On
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# CSV export endpoint proxy: /api/attendance.csv -> public/index.php?export=1
+RewriteRule ^api/attendance\.csv$ public/index.php?export=1 [QSA,L]
+
+# Let real files/folders pass
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Fallback to public index
+RewriteRule ^$ public/index.php [L]
+</IfModule>
+

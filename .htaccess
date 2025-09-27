@@ -1,0 +1,30 @@
+Options -Indexes
+DirectoryIndex web/public/index.php
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# Map API at /attendance/api/* to web/api/*
+RewriteRule ^api/attendance\.csv$ web/public/index.php?export=1 [QSA,L]
+RewriteRule ^api/(.*)$ web/api/$1 [QSA,L]
+
+# Allow /attendance/public/* to hit web/public/*
+RewriteRule ^public/(.*)$ web/public/$1 [QSA,L]
+
+# Allow /attendance/assets/* to serve public assets when accessing root
+RewriteRule ^assets/(.*)$ web/public/assets/$1 [QSA,L]
+
+# Shortcut pretty paths: /attendance/*.php -> web/public/*.php
+RewriteRule ^([A-Za-z0-9_-]+)\.php$ web/public/$1.php [QSA,L]
+
+# Let real files/folders pass
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Root to index
+RewriteRule ^$ web/public/index.php [L]
+
+# Fallback to index for anything else
+RewriteRule . web/public/index.php [L]
+</IfModule>

@@ -1,0 +1,12 @@
+GOALS
+1) Offline-first: log ke microSD; sinkron otomatis saat online.
+2) Aman: HMAC antar perangkat–server; kredensial via .env.
+3) Simpel & cepat di-deploy (Windows + Laragon/XAMPP).
+4) Timezone Asia/Jakarta (UTC+7) di semua komponen.
+5) Output file lengkap, tanpa placeholder.
+6) Firmware: debounce 2s; CSV; queue JSONL; batch POST.
+7) Backend: PHP 8.1 + MySQL; prepared statements.
+8) Dashboard: Bootstrap 5; filter, pagination, export CSV.
+9) Konfigurasi melalui config.h (firmware) & .env.php (server).
+10) Indikator LED/buzzer dan logging DEBUG.
+

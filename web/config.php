@@ -1,0 +1,22 @@
+<?php
+return array (
+  'DB_HOST' => '127.0.0.1',
+  'DB_NAME' => 'attendance',
+  'DB_USER' => 'root',
+  'DB_PASS' => '',
+  'APP_TZ' => 'Asia/Jakarta',
+  'SCHOOL_START' => '07:15',
+  'SCHOOL_END' => '15:00',
+  'SCHOOL_NAME' => 'SMA Bustanul Arifin',
+  'SCHOOL_ADDRESS' => 'Kecamatan Bantarkawung, Kabupaten Brebes',
+  'SCHOOL_PHONE' => '085290582063',
+  'SCHOOL_EMAIL' => 'ppba.1965@gmail.com',
+  'SCHOOL_WEBSITE' => '',
+  'SCHOOL_MOTTO' => '',
+  'REQUIRE_CHECKOUT' => false,
+  'SCHOOL_SKIP_WEEKENDS' => true,
+  'HOLIDAYS' => '',
+  'ADMIN_USER' => 'admin',
+  'ADMIN_PASS' => 'admin',
+  'WEEKLY_OFF_DAYS' => '6,7',
+);
