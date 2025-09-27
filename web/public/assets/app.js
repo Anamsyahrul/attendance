@@ -59,6 +59,9 @@ export function enableAutoRefresh(intervalMs = 10000, options = {}) {
   };
 
   const tick = async () => {
+    if (document?.body?.classList?.contains('modal-open')) {
+      return;
+    }
     try {
       ctrl?.abort();
       ctrl = new AbortController();

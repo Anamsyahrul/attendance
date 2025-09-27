@@ -662,6 +662,9 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
       } catch(e){}
     }
     async function tick(){
+      if (document?.body?.classList?.contains('modal-open')) {
+        return;
+      }
       try {
         const r = await fetch(base + '/api/last_event.php', { headers:{'Accept':'application/json'} });
         const js = await r.json();
@@ -752,15 +755,23 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     editActionEl.addEventListener('change', () => {
       const a = editActionEl.value;
       const tEl = document.getElementById('editTime');
+      const startDef = '<?= e(env('SCHOOL_START','07:15')) ?>';
+      const endDef = '<?= e(env('SCHOOL_END','15:00')) ?>';
+      if (!tEl) return;
+      tEl.disabled = false;
+      tEl.placeholder = '';
       if (a === 'checkin') {
-        tEl.disabled = false;
-        tEl.value = '<?= e(env('SCHOOL_START','07:15')) ?>';
+        tEl.value = startDef;
       } else if (a === 'checkout') {
-        tEl.disabled = false;
-        tEl.value = '<?= e(env('SCHOOL_END','15:00')) ?>';
+        tEl.value = endDef;
+      } else if (a === 'late') {
+        tEl.value = startDef;
+      } else if (a === 'bolos') {
+        tEl.value = endDef;
+        tEl.placeholder = 'Opsional';
       } else {
-        tEl.disabled = true;
         tEl.value = '';
+        tEl.placeholder = 'Opsional';
       }
     });
   }
