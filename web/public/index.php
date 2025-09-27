@@ -829,8 +829,13 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     ensureModal();
     const uid = btn.getAttribute('data-uid');
     const name = btn.getAttribute('data-name') || '';
-    const date = btn.getAttribute('data-date');
+    const dateAttr = (btn.getAttribute('data-date') || '').trim();
     const dateInput = document.getElementById('editDate');
+    const recapDesktop = document.getElementById('recapDate');
+    const recapMobile = document.getElementById('recapDateMobile');
+    let date = dateAttr || (dateInput ? dateInput.value.trim() : '');
+    if (!date) date = (recapDesktop ? recapDesktop.value : '') || (recapMobile ? recapMobile.value : '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) date = new Date().toISOString().slice(0,10);
     document.getElementById('editUid').textContent = uid;
     document.getElementById('editName').textContent = name;
     if (dateInput) dateInput.value = date;
@@ -901,7 +906,17 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
   async function submitManual(action, timeValue, buttonEl) {
     const uid = document.getElementById('editUid').textContent.trim();
-    const date = (document.getElementById('editDate').value||'').trim();
+    const dateInput = document.getElementById('editDate');
+    const recapDesktop = document.getElementById('recapDate');
+    const recapMobile = document.getElementById('recapDateMobile');
+    let date = (dateInput?.value || '').trim();
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) {
+      date = ((recapDesktop?.value || recapMobile?.value) || '').trim();
+    }
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) {
+      date = new Date().toISOString().slice(0,10);
+    }
+    if (dateInput) dateInput.value = date;
     if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) { alert('Tanggal tidak valid'); return; }
     let sendTime = timeValue || '';
     if (action === 'checkin' || action === 'late' || action === 'checkout') {
