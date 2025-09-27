@@ -500,7 +500,7 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <form id="editForm" class="row g-3">
+                        <form id="editForm" class="row g-3">
               <div class="col-12">
                 <div class="text-muted small">Siswa: <strong id="editName"></strong> • UID: <code id="editUid"></code></div>
               </div>
@@ -508,25 +508,49 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
                 <label class="form-label">Tanggal</label>
                 <input type="date" class="form-control" id="editDate" required>
               </div>
+              <div class="col-12 mt-2">
+                <h6 class="mb-1">Status Masuk</h6>
+              </div>
               <div class="col-md-6">
-                <label class="form-label">Aksi</label>
-                <select class="form-select" id="editAction">
+                <label class="form-label">Atur Status Masuk</label>
+                <select class="form-select" id="editActionIn">
                   <option value="checkin">Tandai Hadir</option>
-                  <option value="checkout">Tandai Pulang</option>
                   <option value="late">Tandai Terlambat</option>
-                  <option value="absent">Tandai Absen</option>
-                  <option value="bolos">Tandai Bolos</option>
+                  <option value="absent">Tandai Tidak Hadir</option>
                 </select>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Waktu (HH:MM)</label>
-                <input type="time" class="form-control" id="editTime" required>
+                <label class="form-label">Jam Masuk (HH:MM)</label>
+                <input type="time" class="form-control" id="editTimeIn" required>
+              </div>
+              <div class="col-12 text-end">
+                <button type="button" id="saveEditBtnIn" class="btn btn-primary"><i class="bi bi-save me-1"></i>Simpan Status Masuk</button>
+              </div>
+              <div class="col-12">
+                <hr class="my-2">
+              </div>
+              <div class="col-12 mt-1">
+                <h6 class="mb-1">Status Pulang</h6>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Atur Status Pulang</label>
+                <select class="form-select" id="editActionOut">
+                  <option value="checkout">Tandai Pulang</option>
+                  <option value="bolos">Tandai Bolos</option>
+                  <option value="clear_checkout">Tandai Belum Pulang</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Jam Pulang (HH:MM)</label>
+                <input type="time" class="form-control" id="editTimeOut">
+              </div>
+              <div class="col-12 text-end">
+                <button type="button" id="saveEditBtnOut" class="btn btn-primary"><i class="bi bi-save me-1"></i>Simpan Status Pulang</button>
               </div>
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-            <button type="button" id="saveEditBtn" class="btn btn-primary"><i class="bi bi-save me-1"></i>Simpan</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
           </div>
         </div>
       </div>
@@ -732,6 +756,40 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
   const modalEl = document.getElementById('editModal');
   let editModal = null;
   function ensureModal(){ if (!editModal && window.bootstrap) editModal = new bootstrap.Modal(modalEl); }
+  const startDefault = '<?= e(env('SCHOOL_START','07:15')) ?>';
+  const endDefault = '<?= e(env('SCHOOL_END','15:00')) ?>';
+  const actionInEl = document.getElementById('editActionIn');
+  const timeInEl = document.getElementById('editTimeIn');
+  const actionOutEl = document.getElementById('editActionOut');
+  const timeOutEl = document.getElementById('editTimeOut');
+  const saveEditBtnIn = document.getElementById('saveEditBtnIn');
+  const saveEditBtnOut = document.getElementById('saveEditBtnOut');
+
+  function applyInState(action) {
+    if (!timeInEl) return;
+    if (action === 'checkin' || action === 'late') {
+      timeInEl.disabled = false;
+      if (!timeInEl.value) timeInEl.value = startDefault;
+      timeInEl.placeholder = '';
+    } else {
+      timeInEl.disabled = true;
+      timeInEl.value = '';
+      timeInEl.placeholder = 'Opsional';
+    }
+  }
+
+  function applyOutState(action) {
+    if (!timeOutEl) return;
+    if (action === 'checkout') {
+      timeOutEl.disabled = false;
+      if (!timeOutEl.value) timeOutEl.value = endDefault;
+      timeOutEl.placeholder = '';
+    } else {
+      timeOutEl.disabled = true;
+      timeOutEl.value = '';
+      timeOutEl.placeholder = 'Opsional';
+    }
+  }
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-correct]');
     if (!btn) return;
@@ -739,105 +797,112 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     const uid = btn.getAttribute('data-uid');
     const name = btn.getAttribute('data-name') || '';
     const date = btn.getAttribute('data-date');
+    const dateInput = document.getElementById('editDate');
     document.getElementById('editUid').textContent = uid;
     document.getElementById('editName').textContent = name;
-    document.getElementById('editDate').value = date;
-    const timeDefault = '<?= e(env('SCHOOL_START','07:15')) ?>';
-    const tEl = document.getElementById('editTime');
-    tEl.value = timeDefault;
-    const aEl = document.getElementById('editAction');
-    aEl.value = 'checkin';
-    tEl.disabled = false;
+    if (dateInput) dateInput.value = date;
+    if (actionInEl) actionInEl.value = 'checkin';
+    if (timeInEl) timeInEl.value = startDefault;
+    applyInState(actionInEl ? actionInEl.value : 'checkin');
+    if (actionOutEl) actionOutEl.value = 'checkout';
+    if (timeOutEl) timeOutEl.value = endDefault;
+    applyOutState(actionOutEl ? actionOutEl.value : 'checkout');
     if (editModal) editModal.show();
   });
-  const editActionEl = document.getElementById('editAction');
-  if (editActionEl) {
-    editActionEl.addEventListener('change', () => {
-      const a = editActionEl.value;
-      const tEl = document.getElementById('editTime');
-      const startDef = '<?= e(env('SCHOOL_START','07:15')) ?>';
-      const endDef = '<?= e(env('SCHOOL_END','15:00')) ?>';
-      if (!tEl) return;
-      tEl.disabled = false;
-      tEl.placeholder = '';
-      if (a === 'checkin') {
-        tEl.value = startDef;
-      } else if (a === 'checkout') {
-        tEl.value = endDef;
-      } else if (a === 'late') {
-        tEl.value = startDef;
-      } else if (a === 'bolos') {
-        tEl.value = endDef;
-        tEl.placeholder = 'Opsional';
-      } else {
-        tEl.value = '';
-        tEl.placeholder = 'Opsional';
+
+
+  if (actionInEl) actionInEl.addEventListener('change', () => applyInState(actionInEl.value));
+  if (actionOutEl) actionOutEl.addEventListener('change', () => applyOutState(actionOutEl.value));
+  applyInState(actionInEl ? actionInEl.value : 'checkin');
+  applyOutState(actionOutEl ? actionOutEl.value : 'checkout');
+
+  async function afterManualUpdate() {
+    await updateList({});
+    try {
+      const uid_ = document.getElementById('editUid').textContent.trim();
+      const date_ = (document.getElementById('editDate').value||'').trim();
+      if (!uid_ || !date_) return;
+      const appBase_ = '<?= e($appBase) ?>';
+      const u_ = new URL(appBase_ + '/api/recap_row.php', window.location.origin);
+      u_.searchParams.set('uid', uid_);
+      u_.searchParams.set('date', date_);
+      const r_ = await fetch(u_.toString(), { headers: { 'Accept':'application/json' }, cache: 'no-store' });
+      const js_ = await r_.json();
+      if (js_ && js_.ok && js_.row) {
+        const root = document;
+        const codeEl = root.querySelector('code[data-uid="' + uid_ + '"]');
+        if (codeEl) {
+          const tr = codeEl.closest('tr');
+          const masukCell = tr ? tr.querySelector('td:nth-child(4) .badge') : null;
+          const pulangCell = tr ? tr.querySelector('td:nth-child(5) .badge') : null;
+          if (masukCell) {
+            const ms = js_.row.masuk_status || '';
+            masukCell.textContent = ms;
+            masukCell.classList.remove('badge-present','badge-late','badge-absent');
+            masukCell.classList.add(ms==='Hadir'?'badge-present':(ms==='Terlambat'?'badge-late':'badge-absent'));
+          }
+          if (pulangCell) {
+            const ps = js_.row.pulang_status || '—';
+            pulangCell.textContent = ps;
+            pulangCell.classList.remove('badge-pulang','badge-bolos','badge-belum','badge-absent');
+            pulangCell.classList.add(ps==='Pulang'?'badge-pulang':(ps==='Bolos'?'badge-bolos':(ps==='Belum Pulang'?'badge-belum':'badge-absent')));
+          }
+          if (tr && tr.animate) tr.animate([{backgroundColor:'#fff3cd'},{backgroundColor:'transparent'}], {duration:800, easing:'ease'});
+        }
       }
-    });
+    } catch (e) {}
+    applyInState(actionInEl ? actionInEl.value : 'checkin');
+    applyOutState(actionOutEl ? actionOutEl.value : 'checkout');
   }
-  
-  const saveEditBtn = document.getElementById('saveEditBtn');
-  if (saveEditBtn) {
-    saveEditBtn.addEventListener('click', async () => {
+
+  async function submitManual(action, timeValue, buttonEl) {
     const uid = document.getElementById('editUid').textContent.trim();
     const date = (document.getElementById('editDate').value||'').trim();
-    const timeRaw = (document.getElementById('editTime').value||'').trim();
-    const action = document.getElementById('editAction').value;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { alert('Tanggal tidak valid'); return; }
-    let sendTime = timeRaw;
-    if (action === 'checkin' || action === 'checkout') {
-      if (!/^\d{2}:\d{2}$/.test(timeRaw)) { alert('Jam tidak valid'); return; }
+    let sendTime = timeValue || '';
+    if (action === 'checkin' || action === 'late' || action === 'checkout') {
+      if (!/^\d{2}:\d{2}$/.test(sendTime)) { alert('Jam tidak valid'); return; }
     } else {
-      sendTime = /^\d{2}:\d{2}$/.test(timeRaw) ? timeRaw : '00:00';
+      sendTime = /^\d{2}:\d{2}$/.test(sendTime) ? sendTime : '00:00';
     }
-    const btn = document.getElementById('saveEditBtn');
-    btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Simpan';
+    const originalLabel = buttonEl ? buttonEl.innerHTML : '';
+    if (buttonEl) {
+      buttonEl.disabled = true;
+      buttonEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Memproses';
+    }
     try {
-      const resp = await fetch('<?= e($appBase) ?>/api/set_event.php', { method:'POST', headers:{'Content-Type':'application/json'}, cache:'no-store', body: JSON.stringify({ uid_hex: uid, date, time: sendTime, action }) });
+      const resp = await fetch('<?= e($appBase) ?>/api/set_event.php', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        cache:'no-store',
+        body: JSON.stringify({ uid_hex: uid, date, time: sendTime, action })
+      });
       const js = await resp.json();
       if (!js.ok) { alert('Gagal menyimpan: ' + (js.error||'')); return; }
-      if (editModal) editModal.hide();
-      await updateList({});
-      // Extra: update recap row instantly without full reload (mobile-friendly)
-      try {
-        const root = document;
-        const uid_ = document.getElementById('editUid').textContent.trim();
-        const date_ = (document.getElementById('editDate').value||'').trim();
-        if (uid_ && date_) {
-          const appBase_ = '<?= e($appBase) ?>';
-          const u_ = new URL(appBase_ + '/api/recap_row.php', window.location.origin);
-          u_.searchParams.set('uid', uid_);
-          u_.searchParams.set('date', date_);
-          const r_ = await fetch(u_.toString(), { headers: { 'Accept':'application/json' }, cache: 'no-store' });
-          const js_ = await r_.json();
-          if (js_ && js_.ok && js_.row) {
-            const codeEl = root.querySelector('code[data-uid="' + uid_ + '"]');
-            if (codeEl) {
-              const tr = codeEl.closest('tr');
-              const masukCell = tr ? tr.querySelector('td:nth-child(4) .badge') : null;
-              const pulangCell = tr ? tr.querySelector('td:nth-child(5) .badge') : null;
-              if (masukCell) {
-                const ms = js_.row.masuk_status || '';
-                masukCell.textContent = ms;
-                masukCell.classList.remove('badge-present','badge-late','badge-absent');
-                masukCell.classList.add(ms==='Hadir'?'badge-present':(ms==='Terlambat'?'badge-late':'badge-absent'));
-              }
-              if (pulangCell) {
-                const ps = js_.row.pulang_status || '—';
-                pulangCell.textContent = ps;
-                pulangCell.classList.remove('badge-pulang','badge-bolos','badge-belum','badge-absent');
-                pulangCell.classList.add(ps==='Pulang'?'badge-pulang':(ps==='Bolos'?'badge-bolos':(ps==='Belum Pulang'?'badge-belum':'badge-absent')));
-              }
-              if (tr && tr.animate) tr.animate([{backgroundColor:'#fff3cd'},{backgroundColor:'transparent'}], {duration:800, easing:'ease'});
-            }
-          }
-        }
-      } catch(e){}
-    } catch(err) { alert('Error jaringan'); }
-    finally { btn.disabled = false; btn.innerHTML = '<i class="bi bi-save me-1"></i>Simpan'; }
+      await afterManualUpdate();
+    } catch (err) {
+      alert('Error jaringan');
+    } finally {
+      if (buttonEl) {
+        buttonEl.disabled = false;
+        buttonEl.innerHTML = originalLabel || '<i class="bi bi-save me-1"></i>Simpan';
+      }
+    }
+  }
+
+  if (saveEditBtnIn) {
+    saveEditBtnIn.addEventListener('click', async () => {
+      const action = actionInEl ? actionInEl.value : 'checkin';
+      await submitManual(action, timeInEl ? timeInEl.value : '', saveEditBtnIn);
     });
   }
-  
+  if (saveEditBtnOut) {
+    saveEditBtnOut.addEventListener('click', async () => {
+      const action = actionOutEl ? actionOutEl.value : 'checkout';
+      await submitManual(action, timeOutEl ? timeOutEl.value : '', saveEditBtnOut);
+    });
+  }
+
   // Sync mobile auto-refresh with desktop
   const autoRefreshDesktop = document.getElementById('autoRefresh');
   const autoRefreshMobile = document.getElementById('autoRefreshMobile');

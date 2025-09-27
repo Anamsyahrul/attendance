@@ -69,6 +69,15 @@ try {
         exit;
     }
 
+    if ($action === 'clear_checkout') {
+        $cleanup = $pdo->prepare('DELETE FROM attendance WHERE uid_hex = ? AND ts >= ? AND ts < ? AND raw_json IS NOT NULL AND raw_json LIKE ?');
+        $cleanup->execute([$uid, $dayStart->format('Y-m-d H:i:s'), $dayEnd->format('Y-m-d H:i:s'), '%"type":"override"%']);
+        $delManualCheckout = $pdo->prepare('DELETE FROM attendance WHERE uid_hex = ? AND ts >= ? AND ts < ? AND device_id = ? AND raw_json IS NOT NULL AND raw_json LIKE ?');
+        $delManualCheckout->execute([$uid, $dayStart->format('Y-m-d H:i:s'), $dayEnd->format('Y-m-d H:i:s'), 'manual', '%"type":"checkout"%']);
+        echo json_encode(['ok'=>true, 'cleared'=>true]);
+        return;
+    }
+
     if (in_array($action, ['checkin','checkout','late','absent','bolos'], true)) {
         $cleanup = $pdo->prepare('DELETE FROM attendance WHERE uid_hex = ? AND ts >= ? AND ts < ? AND raw_json IS NOT NULL AND raw_json LIKE ?');
         $cleanup->execute([$uid, $dayStart->format('Y-m-d H:i:s'), $dayEnd->format('Y-m-d H:i:s'), '%"type":"override"%']);
