@@ -1,13 +1,13 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
 
-// Check if user is logged in
+// Periksa apakah pengguna sudah masuk
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
     header('Location: login.php');
     exit;
 }
 
-// CSV Export via /attendance/api/attendance.csv (rewritten here by .htaccess)
+// Ekspor CSV melalui /attendance/api/attendance.csv (ditulis ulang di sini oleh .htaccess)
 if (isset($_GET['export'])) {
     $pdo = pdo();
     $from = $_GET['from'] ?? '';
@@ -62,17 +62,17 @@ $q    = trim($_GET['q'] ?? '');
 $view = $_GET['view'] ?? ($schoolMode ? 'recap' : 'raw');
 $date = $_GET['date'] ?? '';
 $room = $_GET['room'] ?? '';
-// status filter from cards: 'hadir' | 'terlambat' | 'tidak_hadir'
+// filter status dari kartu: 'hadir' | 'terlambat' | 'tidak_hadir'
 $sf   = isset($_GET['sf']) ? strtolower(trim((string)$_GET['sf'])) : '';
 
 try { $fromDt = new DateTime($from ?: 'today', $tz); } catch (Exception $e) { $fromDt = new DateTime('today', $tz); }
 try { $toDt = new DateTime($to ?: 'tomorrow', $tz); } catch (Exception $e) { $toDt = (clone $fromDt)->modify('+1 day'); }
 try { $dateDt = new DateTime($date ?: 'today', $tz); } catch (Exception $e) { $dateDt = new DateTime('today', $tz); }
 
-// Distinct rooms for filters
+// Ruang berbeda untuk filter
 $rooms = $pdo->query("SELECT DISTINCT room FROM users WHERE room <> '' ORDER BY room")->fetchAll(PDO::FETCH_COLUMN);
 
-// Raw list (default mode)
+// Daftar mentah (mode default)
 $params = [$fromDt->format('Y-m-d H:i:s'), $toDt->format('Y-m-d H:i:s')];
 $countSql = 'SELECT COUNT(*) FROM attendance a LEFT JOIN users u ON a.user_id = u.id WHERE a.ts >= ? AND a.ts < ?';
 $listSql  = 'SELECT a.id, a.ts, a.uid_hex, a.device_id, u.name AS user_name, u.room AS room FROM attendance a LEFT JOIN users u ON a.user_id = u.id WHERE a.ts >= ? AND a.ts < ?';
@@ -237,10 +237,10 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
             <i class="bi bi-person-circle me-1"></i><?= e($_SESSION['name'] ?? 'User') ?>
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="./admin_simple.php"><i class="bi bi-shield-check me-2"></i>Admin Panel</a></li>
+            <li><a class="dropdown-item" href="./admin_simple.php"><i class="bi bi-shield-check me-2"></i>Panel Admin</a></li>
             <li><a class="dropdown-item" href="./reports.php"><i class="bi bi-graph-up me-2"></i>Laporan</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="./logout.php"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+            <li><a class="dropdown-item" href="./logout.php"><i class="bi bi-box-arrow-right me-2"></i>Keluar</a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -341,7 +341,7 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
       <div class="col-auto">
         <label class="form-label">Kelas</label>
         <select id="roomFilterDesktop" name="room" class="form-select">
-          <option value="">All</option>
+          <option value="">Semua</option>
           <?php foreach ($rooms as $r): ?>
             <option value="<?= e($r) ?>" <?= $room===$r?'selected':'' ?>><?= e($r) ?></option>
           <?php endforeach; ?>
@@ -386,7 +386,7 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
         <div class="col-8">
           <label class="form-label">Kelas</label>
           <select id="roomFilterMobile" name="room" class="form-select">
-            <option value="">All</option>
+            <option value="">Semua</option>
             <?php foreach ($rooms as $r): ?>
               <option value="<?= e($r) ?>" <?= $room===$r?'selected':'' ?>><?= e($r) ?></option>
             <?php endforeach; ?>
