@@ -7,6 +7,21 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
     exit;
 }
 
+// Inisialisasi PDO dan config
+$pdo = pdo();
+$config = $ENV;
+
+// Inisialisasi NotificationManager
+require_once __DIR__ . '/../classes/NotificationManager.php';
+$notificationManager = new NotificationManager($pdo, $config);
+
+// Update last activity
+$_SESSION['last_activity'] = time();
+
+// Ambil notifikasi untuk user
+$notifications = $notificationManager->getNotifications($_SESSION['user_id'], 5, true);
+$notificationCount = count($notifications);
+
 // Ekspor CSV melalui /attendance/api/attendance.csv (ditulis ulang di sini oleh .htaccess)
 if (isset($_GET['export'])) {
     $pdo = pdo();
@@ -258,6 +273,51 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
         <li class="nav-item"><a class="nav-link" data-nav="profile" href="./student.php"><i class="bi bi-person me-1"></i><span class="btn-text">Profil</span></a></li>
         <?php endif; ?>
         
+        <!-- Notifikasi Bell -->
+        <li class="nav-item dropdown me-2">
+          <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-bell"></i>
+            <?php if ($notificationCount > 0): ?>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+              <?= $notificationCount ?>
+            </span>
+            <?php endif; ?>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" style="min-width: 300px;">
+            <li class="dropdown-header">
+              <i class="bi bi-bell me-1"></i> Notifikasi
+              <?php if ($notificationCount > 0): ?>
+              <span class="badge bg-primary ms-2"><?= $notificationCount ?> baru</span>
+              <?php endif; ?>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <?php if (empty($notifications)): ?>
+            <li class="dropdown-item-text text-muted">
+              <i class="bi bi-check-circle me-1"></i> Tidak ada notifikasi
+            </li>
+            <?php else: ?>
+            <?php foreach ($notifications as $notification): ?>
+            <li>
+              <a class="dropdown-item" href="#" onclick="markAsRead(<?= $notification['id'] ?>)">
+                <div class="d-flex">
+                  <div class="flex-shrink-0">
+                    <i class="bi bi-<?= $notification['type'] === 'error' ? 'exclamation-triangle' : ($notification['type'] === 'warning' ? 'exclamation-circle' : ($notification['type'] === 'success' ? 'check-circle' : 'info-circle')) ?> text-<?= $notification['type'] === 'error' ? 'danger' : ($notification['type'] === 'warning' ? 'warning' : ($notification['type'] === 'success' ? 'success' : 'info')) ?>"></i>
+                  </div>
+                  <div class="flex-grow-1 ms-2">
+                    <div class="fw-bold"><?= e($notification['title']) ?></div>
+                    <div class="small text-muted"><?= e(substr($notification['message'], 0, 50)) ?>...</div>
+                    <div class="small text-muted"><?= date('d/m/Y H:i', strtotime($notification['created_at'])) ?></div>
+                  </div>
+                </div>
+              </a>
+            </li>
+            <?php endforeach; ?>
+            <?php endif; ?>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" onclick="markAllAsRead()"><i class="bi bi-check-all me-1"></i> Tandai semua sebagai dibaca</a></li>
+          </ul>
+        </li>
+
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-person-circle me-1"></i><?= e($_SESSION['name'] ?? 'User') ?>
@@ -1050,6 +1110,61 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
       recapDateDesktop.value = recapDateMobile.value;
     });
   }
+
+  // Fungsi untuk menandai notifikasi sebagai dibaca
+  function markAsRead(notificationId) {
+    fetch('api/mark_notification_read.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ notification_id: notificationId })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Reload halaman untuk update notifikasi
+        location.reload();
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
+
+  // Fungsi untuk menandai semua notifikasi sebagai dibaca
+  function markAllAsRead() {
+    fetch('api/mark_all_notifications_read.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Reload halaman untuk update notifikasi
+        location.reload();
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
+
+  // Auto refresh notifikasi setiap 30 detik
+  setInterval(function() {
+    fetch('api/get_notification_count.php')
+    .then(response => response.json())
+    .then(data => {
+      if (data.count !== <?= $notificationCount ?>) {
+        location.reload();
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }, 30000);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

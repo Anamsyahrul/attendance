@@ -13,59 +13,125 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     $role = $_POST['role'] ?? 'admin';
+    $remember = isset($_POST['remember']);
     
     if (empty($username) || empty($password)) {
         $error = 'Username dan password harus diisi';
     } else {
-        // Periksa apakah ini login admin lama
-        if ($username === 'admin' && $password === 'admin') {
-            // Setel session untuk admin
-            $_SESSION['user_id'] = 1;
-            $_SESSION['username'] = 'admin';
-            $_SESSION['role'] = 'admin';
-            $_SESSION['name'] = 'Administrator';
-            $_SESSION['room'] = 'Admin';
-            $_SESSION['login_time'] = time();
-            
-            header('Location: admin_simple.php');
-            exit;
+        // Rate limiting - cek percobaan login
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $loginAttempts = $_SESSION['login_attempts'][$ip] ?? 0;
+        $lastAttempt = $_SESSION['last_login_attempt'][$ip] ?? 0;
+        
+        // Reset attempts setelah 15 menit
+        if (time() - $lastAttempt > 900) {
+            $loginAttempts = 0;
         }
         
-        // Periksa database untuk pengguna lain
-        $sql = "SELECT * FROM users WHERE username = ? AND role = ? AND is_active = 1";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$username, $role]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($user && password_verify($password, $user['password'])) {
-            // Setel session
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $user['role'];
-            $_SESSION['name'] = $user['name'];
-            $_SESSION['room'] = $user['room'];
-            $_SESSION['login_time'] = time();
-            
-            // Alihkan berdasarkan role
-            switch ($user['role']) {
-                case 'admin':
-                    header('Location: admin_simple.php');
-                    break;
-                case 'teacher':
-                    header('Location: teacher.php');
-                    break;
-                case 'parent':
-                    header('Location: parent.php');
-                    break;
-                case 'student':
-                    header('Location: student.php');
-                    break;
-                default:
-                    header('Location: index.php');
-            }
-            exit;
+        // Blokir jika terlalu banyak percobaan
+        if ($loginAttempts >= 5) {
+            $error = 'Terlalu banyak percobaan login. Silakan coba lagi dalam 15 menit.';
         } else {
-            $error = 'Username, password, atau role tidak valid';
+            // Periksa apakah ini login admin lama
+            if ($username === 'admin' && $password === 'admin') {
+                // Setel session untuk admin
+                $_SESSION['user_id'] = 1;
+                $_SESSION['username'] = 'admin';
+                $_SESSION['role'] = 'admin';
+                $_SESSION['name'] = 'Administrator';
+                $_SESSION['room'] = 'Admin';
+                $_SESSION['login_time'] = time();
+                $_SESSION['last_activity'] = time();
+                
+                // Set remember me cookie
+                if ($remember) {
+                    $token = bin2hex(random_bytes(32));
+                    setcookie('remember_token', $token, time() + (30 * 24 * 60 * 60), '/'); // 30 hari
+                    
+                    // Simpan token ke database
+                    $stmt = $pdo->prepare("INSERT INTO remember_tokens (user_id, token, expires_at) VALUES (?, ?, ?)");
+                    $stmt->execute([1, $token, date('Y-m-d H:i:s', time() + (30 * 24 * 60 * 60))]);
+                }
+                
+                // Reset login attempts
+                unset($_SESSION['login_attempts'][$ip]);
+                unset($_SESSION['last_login_attempt'][$ip]);
+                
+                // Log login
+                $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)");
+                $stmt->execute([1, 'login', 'Admin login successful', $ip]);
+                
+                header('Location: admin_simple.php');
+                exit;
+            }
+            
+            // Periksa database untuk pengguna lain
+            $sql = "SELECT * FROM users WHERE username = ? AND role = ? AND is_active = 1";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$username, $role]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($user && password_verify($password, $user['password'])) {
+                // Setel session
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['name'] = $user['name'];
+                $_SESSION['room'] = $user['room'];
+                $_SESSION['login_time'] = time();
+                $_SESSION['last_activity'] = time();
+                
+                // Set remember me cookie
+                if ($remember) {
+                    $token = bin2hex(random_bytes(32));
+                    setcookie('remember_token', $token, time() + (30 * 24 * 60 * 60), '/'); // 30 hari
+                    
+                    // Simpan token ke database
+                    $stmt = $pdo->prepare("INSERT INTO remember_tokens (user_id, token, expires_at) VALUES (?, ?, ?)");
+                    $stmt->execute([$user['id'], $token, date('Y-m-d H:i:s', time() + (30 * 24 * 60 * 60))]);
+                }
+                
+                // Reset login attempts
+                unset($_SESSION['login_attempts'][$ip]);
+                unset($_SESSION['last_login_attempt'][$ip]);
+                
+                // Log login
+                $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$user['id'], 'login', 'User login successful', $ip]);
+                
+                // Update last login
+                $stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+                $stmt->execute([$user['id']]);
+                
+                // Alihkan berdasarkan role
+                switch ($user['role']) {
+                    case 'admin':
+                        header('Location: admin_simple.php');
+                        break;
+                    case 'teacher':
+                        header('Location: teacher.php');
+                        break;
+                    case 'parent':
+                        header('Location: parent.php');
+                        break;
+                    case 'student':
+                        header('Location: student.php');
+                        break;
+                    default:
+                        header('Location: index.php');
+                }
+                exit;
+            } else {
+                // Increment login attempts
+                $_SESSION['login_attempts'][$ip] = $loginAttempts + 1;
+                $_SESSION['last_login_attempt'][$ip] = time();
+                
+                // Log failed login
+                $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)");
+                $stmt->execute([0, 'login_failed', "Failed login attempt for username: $username, role: $role", $ip]);
+                
+                $error = 'Username, password, atau role tidak valid';
+            }
         }
     }
 }
@@ -348,6 +414,13 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
                                     <i class="bi bi-eye"></i>
                                 </button>
                             </div>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">
+                                Ingat saya selama 30 hari
+                            </label>
                         </div>
 
                         <div class="d-grid">
