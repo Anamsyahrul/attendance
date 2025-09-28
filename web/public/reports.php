@@ -5,7 +5,7 @@ require_login();
 $pdo = pdo();
 $tz = new DateTimeZone(env('APP_TZ', 'Asia/Jakarta'));
 
-// Handle report generation
+// Tangani pembuatan laporan
 if (isset($_GET['generate'])) {
     $reportType = $_GET['type'] ?? 'monthly';
     $month = $_GET['month'] ?? date('Y-m');
@@ -19,15 +19,15 @@ if (isset($_GET['generate'])) {
 }
 
 function generatePDFReport($type, $month, $year) {
-    // PDF generation will be implemented
+    // Pembuatan PDF akan diimplementasikan
     header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment; filename="attendance_report_' . $type . '_' . $month . '.pdf"');
-    echo "PDF Report Generation - Coming Soon";
+    header('Content-Disposition: attachment; filename="laporan_kehadiran_' . $type . '_' . $month . '.pdf"');
+    echo "Pembuatan Laporan PDF - Segera Hadir";
 }
 
 function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
-// Get available months and years
+// Ambil bulan dan tahun yang tersedia
 $months = [];
 $years = [];
 $currentYear = (int)date('Y');
@@ -42,7 +42,7 @@ for ($i = 1; $i <= 12; $i++) {
     ];
 }
 
-// Get report data
+// Ambil data laporan
 $selectedMonth = $_GET['month'] ?? date('Y-m');
 $selectedYear = $_GET['year'] ?? date('Y');
 $selectedType = $_GET['type'] ?? 'monthly';
@@ -132,7 +132,7 @@ function getDailyStatistics($pdo, $start, $end) {
                     <i class="bi bi-house"></i> Dashboard
                 </a>
                 <a class="nav-link" href="users.php">
-                    <i class="bi bi-people"></i> Users
+                    <i class="bi bi-people"></i> Pengguna
                 </a>
             </div>
         </div>
