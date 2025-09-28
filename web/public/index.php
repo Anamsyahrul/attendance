@@ -121,22 +121,22 @@ if ($view === 'recap') {
     $lateAt = DateTime::createFromFormat('Y-m-d H:i', $start->format('Y-m-d') . ' ' . $schoolStart, $tz);
     $endAt  = DateTime::createFromFormat('Y-m-d H:i', $start->format('Y-m-d') . ' ' . $schoolEnd, $tz);
     if ($room !== '') {
-        $sql = 'SELECT u.id, u.name, u.uid_hex, u.room, MIN(a.ts) AS first_ts, MAX(a.ts) AS last_ts
+        $sql = 'SELECT u.id, u.name, u.uid_hex, u.room,
+                       (SELECT MIN(a.ts) FROM attendance a WHERE a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ? AND a.device_id = \'manual\' AND (JSON_EXTRACT(a.raw_json, \'$.type\') = \'checkin\' OR JSON_EXTRACT(a.raw_json, \'$.type\') = \'override\')) AS first_ts,
+                       (SELECT MAX(a.ts) FROM attendance a WHERE a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ? AND a.device_id = \'manual\' AND (JSON_EXTRACT(a.raw_json, \'$.type\') = \'checkout\' OR JSON_EXTRACT(a.raw_json, \'$.status\') = \'bolos\')) AS last_ts
                 FROM users u
-                LEFT JOIN attendance a ON a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ?
                 WHERE u.room = ?
-                GROUP BY u.id, u.name, u.uid_hex, u.room
                 ORDER BY u.name';
         $st = $pdo->prepare($sql);
-        $st->execute([$start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s'), $room]);
+        $st->execute([$start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s'), $start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s'), $room]);
     } else {
-        $sql = 'SELECT u.id, u.name, u.uid_hex, u.room, MIN(a.ts) AS first_ts, MAX(a.ts) AS last_ts
+        $sql = 'SELECT u.id, u.name, u.uid_hex, u.room,
+                       (SELECT MIN(a.ts) FROM attendance a WHERE a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ? AND a.device_id = \'manual\' AND (JSON_EXTRACT(a.raw_json, \'$.type\') = \'checkin\' OR JSON_EXTRACT(a.raw_json, \'$.type\') = \'override\')) AS first_ts,
+                       (SELECT MAX(a.ts) FROM attendance a WHERE a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ? AND a.device_id = \'manual\' AND (JSON_EXTRACT(a.raw_json, \'$.type\') = \'checkout\' OR JSON_EXTRACT(a.raw_json, \'$.status\') = \'bolos\')) AS last_ts
                 FROM users u
-                LEFT JOIN attendance a ON a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ?
-                GROUP BY u.id, u.name, u.uid_hex, u.room
                 ORDER BY u.room, u.name';
         $st = $pdo->prepare($sql);
-        $st->execute([$start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s')]);
+        $st->execute([$start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s'), $start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s')]);
     }
     $rowsRecap = $st->fetchAll(PDO::FETCH_ASSOC);
     $present = 0; $late = 0; $absent = 0; $total = count($rowsRecap);
@@ -784,6 +784,14 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
       timeOutEl.disabled = false;
       if (!timeOutEl.value) timeOutEl.value = endDefault;
       timeOutEl.placeholder = '';
+    } else if (action === 'bolos') {
+      timeOutEl.disabled = false;
+      if (!timeOutEl.value) timeOutEl.value = endDefault;
+      timeOutEl.placeholder = 'Opsional (default: jam sekolah selesai)';
+    } else if (action === 'clear_checkout') {
+      timeOutEl.disabled = true;
+      timeOutEl.value = '';
+      timeOutEl.placeholder = 'Tidak perlu jam untuk Belum Pulang';
     } else {
       timeOutEl.disabled = true;
       timeOutEl.value = '';
@@ -910,19 +918,19 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     const recapDesktop = document.getElementById('recapDate');
     const recapMobile = document.getElementById('recapDateMobile');
     let date = (dateInput?.value || '').trim();
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       date = ((recapDesktop?.value || recapMobile?.value) || '').trim();
     }
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       date = new Date().toISOString().slice(0,10);
     }
     if (dateInput) dateInput.value = date;
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) { alert('Tanggal tidak valid'); return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { alert('Tanggal tidak valid'); return; }
     let sendTime = timeValue || '';
     if (action === 'checkin' || action === 'late' || action === 'checkout') {
-      if (!/^\\d{2}:\\d{2}$/.test(sendTime)) { alert('Jam tidak valid'); return; }
+      if (!/^\d{2}:\d{2}$/.test(sendTime)) { alert('Jam tidak valid'); return; }
     } else {
-      sendTime = /^\\d{2}:\\d{2}$/.test(sendTime) ? sendTime : '00:00';
+      sendTime = /^\d{2}:\d{2}$/.test(sendTime) ? sendTime : '00:00';
     }
     const originalLabel = buttonEl ? buttonEl.innerHTML : '';
     if (buttonEl) {
