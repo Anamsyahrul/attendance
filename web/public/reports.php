@@ -9,14 +9,95 @@ if ($_SESSION['role'] !== 'admin') {
 }
 
 $pdo = pdo();
+$config = $ENV;
 $tz = new DateTimeZone(env('APP_TZ', 'Asia/Jakarta'));
 
+// Inisialisasi NotificationManager
+require_once __DIR__ . '/../classes/NotificationManager.php';
+$notificationManager = new NotificationManager($pdo, $config);
+
 // Tangani pembuatan laporan
+$reportType = $_GET['type'] ?? 'monthly';
+$month = $_GET['month'] ?? date('Y-m');
+$year = $_GET['year'] ?? date('Y');
+$format = $_GET['format'] ?? 'html';
+$room = $_GET['room'] ?? '';
+$user = $_GET['user'] ?? '';
+
+// Ambil data untuk dashboard
+$stats = [];
+
+// Statistik umum
+$stmt = $pdo->prepare("
+    SELECT 
+        COUNT(DISTINCT u.id) as total_users,
+        COUNT(DISTINCT CASE WHEN u.is_active = 1 THEN u.id END) as active_users,
+        COUNT(DISTINCT a.uid_hex) as users_with_attendance,
+        COUNT(a.id) as total_scans
+    FROM users u
+    LEFT JOIN attendance a ON u.uid_hex = a.uid_hex AND DATE(a.ts) = CURDATE()
+");
+$stmt->execute();
+$stats['general'] = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Statistik kehadiran hari ini
+$stmt = $pdo->prepare("
+    SELECT 
+        COUNT(DISTINCT a.uid_hex) as present_today,
+        COUNT(DISTINCT CASE WHEN JSON_EXTRACT(a.raw_json, '$.is_late') = true THEN a.uid_hex END) as late_today,
+        COUNT(DISTINCT CASE WHEN JSON_EXTRACT(a.raw_json, '$.is_late') = false THEN a.uid_hex END) as on_time_today
+    FROM attendance a
+    WHERE DATE(a.ts) = CURDATE()
+");
+$stmt->execute();
+$stats['today'] = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Statistik per role
+$stmt = $pdo->prepare("
+    SELECT 
+        u.role,
+        COUNT(u.id) as total,
+        COUNT(CASE WHEN u.is_active = 1 THEN 1 END) as active,
+        COUNT(DISTINCT a.uid_hex) as with_attendance
+    FROM users u
+    LEFT JOIN attendance a ON u.uid_hex = a.uid_hex AND DATE(a.ts) = CURDATE()
+    GROUP BY u.role
+");
+$stmt->execute();
+$stats['by_role'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Statistik per kelas
+$stmt = $pdo->prepare("
+    SELECT 
+        u.room,
+        COUNT(DISTINCT u.id) as total_students,
+        COUNT(DISTINCT a.uid_hex) as present_today,
+        ROUND(COUNT(DISTINCT a.uid_hex) * 100.0 / COUNT(DISTINCT u.id), 2) as attendance_rate
+    FROM users u
+    LEFT JOIN attendance a ON u.uid_hex = a.uid_hex AND DATE(a.ts) = CURDATE()
+    WHERE u.role = 'student' AND u.room != ''
+    GROUP BY u.room
+    ORDER BY attendance_rate DESC
+");
+$stmt->execute();
+$stats['by_room'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Data untuk grafik bulanan
+$stmt = $pdo->prepare("
+    SELECT 
+        DATE(a.ts) as date,
+        COUNT(DISTINCT a.uid_hex) as present,
+        COUNT(DISTINCT CASE WHEN JSON_EXTRACT(a.raw_json, '$.is_late') = true THEN a.uid_hex END) as late,
+        COUNT(DISTINCT CASE WHEN JSON_EXTRACT(a.raw_json, '$.is_late') = false THEN a.uid_hex END) as on_time
+    FROM attendance a
+    WHERE DATE(a.ts) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+    GROUP BY DATE(a.ts)
+    ORDER BY date DESC
+");
+$stmt->execute();
+$stats['monthly_chart'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 if (isset($_GET['generate'])) {
-    $reportType = $_GET['type'] ?? 'monthly';
-    $month = $_GET['month'] ?? date('Y-m');
-    $year = $_GET['year'] ?? date('Y');
-    $format = $_GET['format'] ?? 'html';
     
     if ($format === 'pdf') {
         generatePDFReport($reportType, $month, $year);
