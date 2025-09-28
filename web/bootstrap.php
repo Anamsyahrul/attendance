@@ -80,7 +80,7 @@ function auth_password(): string {
 }
 
 function sudah_masuk(): bool {
-    return !empty($_SESSION['auth_logged_in']);
+    return !empty($_SESSION['user_id']) && !empty($_SESSION['role']);
 }
 
 function masuk_pengguna(): void {
