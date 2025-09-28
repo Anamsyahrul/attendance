@@ -93,7 +93,7 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
                 <a class="nav-link" href="reports.php">
                     <i class="bi bi-graph-up"></i> Reports
                 </a>
-                <a class="nav-link" href="logout_simple.php">
+                <a class="nav-link" href="logout.php">
                     <i class="bi bi-box-arrow-right"></i> Logout
                 </a>
             </div>
