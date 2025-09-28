@@ -15,6 +15,7 @@ return array (
   'SCHOOL_MOTTO' => '',
   'REQUIRE_CHECKOUT' => false,
   'SCHOOL_SKIP_WEEKENDS' => true,
+  'SCHOOL_MODE' => true,
   'HOLIDAYS' => '',
   'ADMIN_USER' => 'admin',
   'ADMIN_PASS' => 'admin',
