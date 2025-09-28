@@ -41,10 +41,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if ($username && $password && $email && $name) {
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-                $sql = "INSERT INTO users (username, password, email, role, name, room, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)";
+                
+                // Generate unique UID hex for the user
+                $uidHex = strtolower(substr(md5($username . time() . rand()), 0, 16));
+                
+                $sql = "INSERT INTO users (username, password, email, role, name, room, uid_hex, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, 1)";
                 $stmt = $pdo->prepare($sql);
-                if ($stmt->execute([$username, $hashedPassword, $email, $role, $name, $room])) {
-                    $message = 'User berhasil dibuat';
+                if ($stmt->execute([$username, $hashedPassword, $email, $role, $name, $room, $uidHex])) {
+                    $message = 'User berhasil dibuat dengan UID: ' . $uidHex;
                 } else {
                     $message = 'Gagal membuat user';
                 }
