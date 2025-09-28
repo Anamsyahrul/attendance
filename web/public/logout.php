@@ -1,6 +1,10 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
-logout_user();
-header('Location: login.php?logged_out=1');
-exit;
+require_once __DIR__ . '/../classes/AuthService.php';
 
+$authService = new AuthService($pdo, $config);
+$authService->logout();
+
+header('Location: login_new.php');
+exit;
+?>

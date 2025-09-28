@@ -1,189 +1,357 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
-require_login();
-$pdo = pdo();
-$tz = new DateTimeZone(env('APP_TZ','Asia/Jakarta'));
+require_once __DIR__ . '/../classes/AuthService.php';
 
-function e($s){return htmlspecialchars((string)$s,ENT_QUOTES,'UTF-8');}
+$authService = new AuthService($pdo, $config);
+$authService->requireRole(['student']);
 
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$uid = isset($_GET['uid']) ? preg_replace('/[^0-9a-f]/i','', strtolower($_GET['uid'])) : '';
+$user = $authService->getCurrentUser();
 
-if ($id > 0) {
-  $st = $pdo->prepare('SELECT id, name, uid_hex, room FROM users WHERE id = ?');
-  $st->execute([$id]);
-  $user = $st->fetch(PDO::FETCH_ASSOC);
-} elseif ($uid !== '') {
-  $st = $pdo->prepare('SELECT id, name, uid_hex, room FROM users WHERE uid_hex = ?');
-  $st->execute([$uid]);
-  $user = $st->fetch(PDO::FETCH_ASSOC);
-} else {
-  $user = null;
-}
+// Get student's attendance data
+$tz = new DateTimeZone(env('APP_TZ', 'Asia/Jakarta'));
+$today = new DateTime('today', $tz);
+$tomorrow = (clone $today)->modify('+1 day');
 
-if (!$user) {
-  http_response_code(404);
-  echo 'Siswa tidak ditemukan';
-  exit;
-}
+// Get today's attendance
+$todayAttendance = $pdo->prepare("
+    SELECT * FROM attendance 
+    WHERE uid_hex = ? AND ts >= ? AND ts < ? 
+    ORDER BY ts DESC 
+    LIMIT 1
+");
+$todayAttendance->execute([$user['uid_hex'], $today->format('Y-m-d H:i:s'), $tomorrow->format('Y-m-d H:i:s')]);
+$todayAttendance = $todayAttendance->fetch(PDO::FETCH_ASSOC);
 
-$from = $_GET['from'] ?? '';
-$to   = $_GET['to'] ?? '';
-try { $fromDt = new DateTime($from ?: 'first day of this month', $tz); } catch (Exception $e) { $fromDt = new DateTime('first day of this month', $tz); }
-try { $toDt = new DateTime($to ?: 'last day of this month', $tz); } catch (Exception $e) { $toDt = (clone $fromDt)->modify('last day of this month'); }
+// Get monthly attendance
+$monthStart = (clone $today)->modify('first day of this month');
+$monthEnd = (clone $monthStart)->modify('+1 month');
 
-// Daily status per day in range
-$period = new DatePeriod($fromDt, new DateInterval('P1D'), (clone $toDt)->modify('+1 day'));
-$rows = [];
-$schoolStart = env('SCHOOL_START','07:15');
-$schoolEnd   = env('SCHOOL_END','15:00');
-$requireCheckout = (bool) env('REQUIRE_CHECKOUT', false);
+$monthlyAttendance = $pdo->prepare("
+    SELECT DATE(ts) as date, MIN(ts) as first_scan, MAX(ts) as last_scan, COUNT(*) as total_scans
+    FROM attendance 
+    WHERE uid_hex = ? AND ts >= ? AND ts < ? 
+    GROUP BY DATE(ts)
+    ORDER BY date DESC
+    LIMIT 30
+");
+$monthlyAttendance->execute([$user['uid_hex'], $monthStart->format('Y-m-d H:i:s'), $monthEnd->format('Y-m-d H:i:s')]);
+$monthlyAttendance = $monthlyAttendance->fetchAll(PDO::FETCH_ASSOC);
 
-foreach ($period as $day) {
-  $start = DateTime::createFromFormat('Y-m-d H:i:s', $day->format('Y-m-d').' 00:00:00', $tz);
-  $end   = (clone $start)->modify('+1 day');
-  $q = $pdo->prepare('SELECT MIN(ts) AS first_ts, MAX(ts) AS last_ts FROM attendance WHERE uid_hex = ? AND ts >= ? AND ts < ?');
-  $q->execute([$user['uid_hex'], $start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s')]);
-  $r = $q->fetch(PDO::FETCH_ASSOC) ?: ['first_ts'=>null,'last_ts'=>null];
-  $first = $r['first_ts']; $last = $r['last_ts'];
-  $lateAt = DateTime::createFromFormat('Y-m-d H:i', $day->format('Y-m-d').' '.$schoolStart, $tz);
-  $endAt  = DateTime::createFromFormat('Y-m-d H:i', $day->format('Y-m-d').' '.$schoolEnd, $tz);
-  $statusMasuk = 'Tidak Hadir';
-  $statusPulang = '';
-  if ($first) {
-    $f = new DateTime($first, $tz);
-    $statusMasuk = ($f > $lateAt) ? 'Terlambat' : 'Hadir';
-    if ($last) {
-      $statusPulang = 'Pulang';
-    } else {
-      $today = new DateTime('today', $tz);
-      if ($day < $today) $statusPulang = 'Bolos';
-      else {
-        // aturan tambahan: setelah 21:00 di hari yg sama tanpa scan pulang => Bolos
-        $now = new DateTime('now', $tz);
-        $cut21 = DateTime::createFromFormat('Y-m-d H:i', $day->format('Y-m-d') . ' 21:00', $tz);
-        if ($now > $cut21 && !is_holiday($day)) {
-          $statusPulang = 'Bolos';
-        } else if ($requireCheckout) {
-          $statusPulang = ($now > $endAt && !is_holiday($day)) ? 'Bolos' : 'Belum Pulang';
-        } else {
-          $statusPulang = 'Belum Pulang';
-        }
-      }
-    }
-  }
-  $rows[] = [
-    'date' => $day->format('Y-m-d'),
-    'first_ts' => $first,
-    'last_ts' => $last,
-    'masuk' => $statusMasuk,
-    'pulang' => $statusPulang,
-  ];
-}
+// Calculate statistics
+$totalDays = count($monthlyAttendance);
+$presentDays = count(array_filter($monthlyAttendance));
+$attendanceRate = $totalDays > 0 ? round(($presentDays / $totalDays) * 100, 1) : 0;
 
+function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Profil Siswa</title>
-  <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link href="./assets/style.css" rel="stylesheet">
+    <title>Student Dashboard - <?= e(env('SCHOOL_NAME', 'SMA Bustanul Arifin')) ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .student-card { border-left: 4px solid #6f42c1; }
+        .stats-card { background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%); color: white; }
+        .student-info { background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%); color: white; }
+        .attendance-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        .calendar-day { 
+            aspect-ratio: 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 5px; 
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .present { background-color: #28a745; color: white; }
+        .absent { background-color: #dc3545; color: white; }
+        .late { background-color: #ffc107; color: black; }
+        .future { background-color: #e9ecef; color: #6c757d; }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-  <div class="container-fluid">
-    <?php $school = env('SCHOOL_NAME', 'Attendance'); ?>
-    <a class="navbar-brand d-flex align-items-center gap-2" href="./index.php">
-      <span><?= e($school) ?></span>
-    </a>
-    <!-- Mobile toggle button -->
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    
-    <!-- Collapsible navbar content -->
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" data-nav="dashboard" href="./index.php"><i class="bi bi-speedometer2 me-1"></i><span class="btn-text">Dashboard</span></a></li>
-        <li class="nav-item"><a class="nav-link" data-nav="register" href="./register.php"><i class="bi bi-person-plus me-1"></i><span class="btn-text">Daftar Kartu</span></a></li>
-        <li class="nav-item"><a class="nav-link active" data-nav="users" href="./users.php"><i class="bi bi-people me-1"></i><span class="btn-text">Siswa</span></a></li>
-        <li class="nav-item"><a class="nav-link" data-nav="rooms" href="./rooms.php"><i class="bi bi-building me-1"></i><span class="btn-text">Kelas</span></a></li>
-        <li class="nav-item"><a class="nav-link" data-nav="settings" href="./settings.php"><i class="bi bi-gear me-1"></i><span class="btn-text">Pengaturan</span></a></li>
-
-        <li class="nav-item">
-          <button id="themeToggle" class="btn" type="button" style="background-color: #6c757d; border: 1px solid #6c757d; color: #ffffff; padding: 0.5rem 1rem; border-radius: 4px; margin: 0 0.5rem; display: inline-block; text-decoration: none; font-size: 0.875rem; font-weight: 500; cursor: pointer; min-width: 100px;"><i class="bi bi-moon-stars me-1"></i><span class="btn-text">Gelap</span></button>
-        </li>
-        <li class="nav-item">
-          <a class="btn" href="./logout.php" style="background-color: #dc3545; border: 1px solid #dc3545; color: #ffffff; padding: 0.5rem 1rem; border-radius: 4px; margin: 0 0.5rem; display: inline-block; text-decoration: none; font-size: 0.875rem; font-weight: 500; cursor: pointer; min-width: 100px;"><i class="bi bi-box-arrow-right me-1"></i><span class="btn-text">Keluar</span></a>
-        </li>
-      </ul>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-purple" style="background-color: #6f42c1 !important;">
+        <div class="container">
+            <a class="navbar-brand" href="student.php">
+                <i class="bi bi-person"></i> Student Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3">
+                    <i class="bi bi-person"></i> <?= e($user['name']) ?> (<?= e($user['room']) ?>)
+                </span>
+                <a class="nav-link" href="logout.php">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
     </div>
   </div>
 </nav>
 
-<div class="container">
-  <h3 class="mb-1">Profil Siswa</h3>
-  <div class="mb-3 text-muted">Nama: <strong><?= e($user['name']) ?></strong> • UID: <code><?= e($user['uid_hex']) ?></code> • Kelas: <strong><?= e($user['room']) ?></strong></div>
+    <div class="container-fluid mt-4">
+        <!-- Student Info Card -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card student-info">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h4 class="mb-1">
+                                    <i class="bi bi-person-circle"></i> <?= e($user['name']) ?>
+                                </h4>
+                                <p class="mb-0">
+                                    <i class="bi bi-book"></i> Kelas: <?= e($user['room']) ?> | 
+                                    <i class="bi bi-credit-card"></i> UID: <?= e($user['uid_hex']) ?>
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <h2 class="mb-0">
+                                    <?php if ($todayAttendance): ?>
+                                        <span class="badge bg-success fs-6">Sudah Scan Hari Ini</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-warning fs-6">Belum Scan Hari Ini</span>
+                                    <?php endif; ?>
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-  <form method="get" class="row g-2 align-items-end mb-3">
-    <input type="hidden" name="id" value="<?= (int)$user['id'] ?>">
-    <div class="col-auto">
-      <label class="form-label">Dari</label>
-      <input type="date" class="form-control" name="from" value="<?= e($fromDt->format('Y-m-d')) ?>">
-    </div>
-    <div class="col-auto">
-      <label class="form-label">Sampai</label>
-      <input type="date" class="form-control" name="to" value="<?= e($toDt->format('Y-m-d')) ?>">
-    </div>
-    <div class="col-auto">
-      <button class="btn btn-primary" type="submit"><i class="bi bi-filter me-1"></i>Filter</button>
-    </div>
-  </form>
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-calendar-check fs-1"></i>
+                        <h3 class="mt-2"><?= $totalDays ?></h3>
+                        <p class="mb-0">Hari Sekolah</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-check-circle fs-1"></i>
+                        <h3 class="mt-2"><?= $presentDays ?></h3>
+                        <p class="mb-0">Hari Hadir</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-graph-up fs-1"></i>
+                        <h3 class="mt-2"><?= $attendanceRate ?>%</h3>
+                        <p class="mb-0">Tingkat Hadir</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-clock fs-1"></i>
+                        <h3 class="mt-2">
+                            <?php if ($todayAttendance): ?>
+                                <?= date('H:i', strtotime($todayAttendance['ts'])) ?>
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
+                        </h3>
+                        <p class="mb-0">Scan Terakhir</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <!-- Today's Status -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card student-card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-calendar-day"></i> Status Hari Ini
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($todayAttendance): ?>
+                            <div class="alert alert-success">
+                                <h6><i class="bi bi-check-circle"></i> Sudah Melakukan Scan</h6>
+                                <p class="mb-1"><strong>Waktu Scan:</strong> <?= date('H:i:s', strtotime($todayAttendance['ts'])) ?></p>
+                                <p class="mb-0">
+                                    <?php 
+                                    $arrivalTime = strtotime($todayAttendance['ts']);
+                                    $lateTime = strtotime(date('Y-m-d 07:15:00'));
+                                    if ($arrivalTime > $lateTime): ?>
+                                        <span class="text-warning">
+                                            <i class="bi bi-clock"></i> Terlambat <?= round(($arrivalTime - $lateTime) / 60) ?> menit
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="text-success">
+                                            <i class="bi bi-check-circle"></i> Tepat waktu
+                                        </span>
+                                    <?php endif; ?>
+                                </p>
+                            </div>
+                        <?php else: ?>
+                            <div class="alert alert-warning">
+                                <h6><i class="bi bi-exclamation-triangle"></i> Belum Melakukan Scan</h6>
+                                <p class="mb-0">Silakan lakukan scan RFID untuk mencatat kehadiran</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card student-card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-calendar3"></i> Kalender Kehadiran
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="attendance-calendar">
+                            <?php
+                            $currentMonth = $today->format('Y-m');
+                            $firstDay = (clone $today)->modify('first day of this month');
+                            $lastDay = (clone $firstDay)->modify('last day of this month');
+                            
+                            // Create attendance map
+                            $attendanceMap = [];
+                            foreach ($monthlyAttendance as $att) {
+                                $attendanceMap[date('Y-m-d', strtotime($att['date']))] = $att;
+                            }
+                            
+                            // Generate calendar
+                            for ($i = 1; $i <= $lastDay->format('d'); $i++) {
+                                $date = sprintf('%s-%02d', $currentMonth, $i);
+                                $dayOfWeek = date('w', strtotime($date));
+                                
+                                if ($i == 1) {
+                                    // Add empty cells for days before the first day of month
+                                    for ($j = 0; $j < $dayOfWeek; $j++) {
+                                        echo '<div class="calendar-day future">-</div>';
+                                    }
+                                }
+                                
+                                $att = $attendanceMap[$date] ?? null;
+                                $class = 'future';
+                                
+                                if ($att) {
+                                    $arrivalTime = strtotime($att['first_scan']);
+                                    $lateTime = strtotime($date . ' 07:15:00');
+                                    $class = $arrivalTime > $lateTime ? 'late' : 'present';
+                                } elseif ($date < $today->format('Y-m-d')) {
+                                    $class = 'absent';
+                                }
+                                
+                                echo '<div class="calendar-day ' . $class . '">' . $i . '</div>';
+                            }
+                            ?>
+                        </div>
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <span class="badge bg-success me-1">■</span> Hadir | 
+                                <span class="badge bg-warning me-1">■</span> Terlambat | 
+                                <span class="badge bg-danger me-1">■</span> Tidak Hadir | 
+                                <span class="badge bg-secondary me-1">■</span> Belum Datang
+                            </small>
+                        </div>
+                    </div>
+    </div>
+    </div>
+    </div>
+
+        <!-- Monthly Attendance History -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card student-card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-calendar-week"></i> Riwayat Kehadiran Bulan Ini
+                        </h5>
+                    </div>
+                    <div class="card-body">
   <div class="table-responsive">
-    <table class="table table-striped align-middle">
-      <thead>
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
         <tr>
           <th>Tanggal</th>
-          <th>Status Hadir</th>
-          <th>Status Pulang</th>
-          <th>Scan Hadir</th>
-          <th>Scan Pulang</th>
+                                        <th>Hari</th>
+                                        <th>Waktu Masuk</th>
+                                        <th>Waktu Pulang</th>
+                                        <th>Status</th>
+                                        <th>Keterangan</th>
         </tr>
       </thead>
       <tbody>
-        <?php foreach ($rows as $r): ?>
-          <?php $badge = $r['masuk']==='Hadir'?'badge-present':($r['masuk']==='Terlambat'?'badge-late':'badge-absent');
-                $p=$r['pulang']; $pcls = ($p==='Pulang')?'badge-pulang':(($p==='Bolos')?'badge-bolos':(($p==='Belum Pulang')?'badge-belum':'badge-absent')); ?>
-          <tr>
-            <td><?= e($r['date']) ?></td>
-            <td><span class="badge badge-status <?= $badge ?>"><?= e($r['masuk']) ?></span></td>
-            <td><span class="badge badge-status <?= $pcls ?>"><?= e($p ?: '—') ?></span></td>
-            <td><?= e($r['first_ts'] ?: '—') ?></td>
-            <td><?= e($r['last_ts'] ?: '—') ?></td>
+                                    <?php foreach ($monthlyAttendance as $att): ?>
+                                    <tr>
+                                        <td><?= date('d/m/Y', strtotime($att['date'])) ?></td>
+                                        <td><?= date('l', strtotime($att['date'])) ?></td>
+                                        <td>
+                                            <?php if ($att['first_scan']): ?>
+                                                <?= date('H:i:s', strtotime($att['first_scan'])) ?>
+                                            <?php else: ?>
+                                                <span class="text-muted">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($att['last_scan'] && $att['last_scan'] !== $att['first_scan']): ?>
+                                                <?= date('H:i:s', strtotime($att['last_scan'])) ?>
+                                            <?php else: ?>
+                                                <span class="text-muted">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($att['first_scan']): ?>
+                                                <?php 
+                                                $arrivalTime = strtotime($att['first_scan']);
+                                                $lateTime = strtotime($att['date'] . ' 07:15:00');
+                                                if ($arrivalTime > $lateTime): ?>
+                                                    <span class="badge bg-warning">Terlambat</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-success">Hadir</span>
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                <span class="badge bg-danger">Tidak Hadir</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($att['first_scan']): ?>
+                                                <?php 
+                                                $arrivalTime = strtotime($att['first_scan']);
+                                                $lateTime = strtotime($att['date'] . ' 07:15:00');
+                                                if ($arrivalTime > $lateTime): ?>
+                                                    Terlambat <?= round(($arrivalTime - $lateTime) / 60) ?> menit
+                                                <?php else: ?>
+                                                    Tepat waktu
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                Tidak hadir
+                                            <?php endif; ?>
+                                        </td>
           </tr>
         <?php endforeach; ?>
+                                    
+                                    <?php if (empty($monthlyAttendance)): ?>
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">
+                                            <i class="bi bi-info-circle"></i> Belum ada data kehadiran bulan ini
+                                        </td>
+                                    </tr>
+                                    <?php endif; ?>
       </tbody>
     </table>
   </div>
-  <div class="mt-2">
-    <button type="button" class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Cetak</button>
+                    </div>
+                </div>
+            </div>
+        </div>
   </div>
 
-  <footer class="site-footer text-center small">
-    <?php $addr=env('SCHOOL_ADDRESS',''); $phone=env('SCHOOL_PHONE',''); $email=env('SCHOOL_EMAIL',''); $site=env('SCHOOL_WEBSITE',''); ?>
-    <div><strong><?= e(env('SCHOOL_NAME','')) ?></strong><?= ($m=env('SCHOOL_MOTTO',''))? ' • '.e($m):'' ?></div>
-    <div><?= e($addr) ?> <?= $phone? ' • Telp: '.e($phone):'' ?> <?= $email? ' • Email: '.e($email):'' ?> <?= $site? ' • '.e($site):'' ?></div>
-  </footer>
-</div>
-<script type="module">
-  import { initTheme, initThemeToggle, initContrast, setActiveNav } from './assets/app.js';
-  initTheme(); initThemeToggle(); initContrast(); setActiveNav('users');
-</script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

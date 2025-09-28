@@ -17,6 +17,12 @@ if (!file_exists($envPath)) {
         'WEEKLY_OFF' => [6, 7],
         'ADMIN_USER' => 'admin',
         'ADMIN_PASS' => 'admin',
+        'SCHOOL_EMAIL' => 'admin@school.com',
+        'SCHOOL_PHONE' => '085290582063',
+        'NOTIFICATION_EMAIL' => true,
+        'NOTIFICATION_SMS' => false,
+        'BACKUP_AUTO' => true,
+        'BACKUP_RETENTION_DAYS' => 30,
     ];
 } else {
     $ENV = require $envPath;
