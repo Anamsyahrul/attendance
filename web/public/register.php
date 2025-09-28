@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
-require_login();
+wajib_masuk();
 $pdo = pdo();
 
 function e($s){return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');}

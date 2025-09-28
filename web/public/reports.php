@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
-require_login();
+wajib_masuk();
 
 $pdo = pdo();
 $tz = new DateTimeZone(env('APP_TZ', 'Asia/Jakarta'));

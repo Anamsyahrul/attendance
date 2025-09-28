@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
-require_login();
+wajib_masuk();
 
 $msg = '';$err='';
 
@@ -64,7 +64,7 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') 
         if ($adminPass !== '') {
             $payload['ADMIN_PASS'] = $adminPass;
         }
-        if (save_env($payload)) {
+        if (simpan_konfigurasi($payload)) {
             if (session_status() === PHP_SESSION_ACTIVE) {
                 $_SESSION['auth_username'] = $adminUser;
             }
