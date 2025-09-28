@@ -1,6 +1,9 @@
 <?php
 // bootstrap.php - memuat konfigurasi, mengatur zona waktu, menyediakan PDO + helper
 
+// Mulai output buffering untuk mencegah error headers already sent
+ob_start();
+
 // Muat konfigurasi sebagai array PHP dari web/config.php
 $envPath = __DIR__ . '/config.php';
 if (!file_exists($envPath)) {
@@ -34,9 +37,6 @@ function env($key, $default = null) {
 }
 
 date_default_timezone_set(env('APP_TZ', 'Asia/Jakarta'));
-
-// Mulai output buffering untuk mencegah error headers already sent
-ob_start();
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

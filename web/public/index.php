@@ -227,18 +227,59 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     <!-- Collapsible navbar content -->
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
+        <?php $userRole = $_SESSION['role'] ?? 'admin'; ?>
+        
+        <!-- Dashboard - Available for all roles -->
         <li class="nav-item"><a class="nav-link" data-nav="dashboard" href="./index.php"><i class="bi bi-speedometer2 me-1"></i><span class="btn-text">Dashboard</span></a></li>
+        
+        <?php if ($userRole === 'admin'): ?>
+        <!-- Admin-only menu items -->
         <li class="nav-item"><a class="nav-link" data-nav="register" href="./register.php"><i class="bi bi-person-plus me-1"></i><span class="btn-text">Daftar Kartu</span></a></li>
         <li class="nav-item"><a class="nav-link" data-nav="users" href="./users.php"><i class="bi bi-people me-1"></i><span class="btn-text">Siswa</span></a></li>
         <li class="nav-item"><a class="nav-link" data-nav="rooms" href="./rooms.php"><i class="bi bi-building me-1"></i><span class="btn-text">Kelas</span></a></li>
         <li class="nav-item"><a class="nav-link" data-nav="settings" href="./settings.php"><i class="bi bi-gear me-1"></i><span class="btn-text">Pengaturan</span></a></li>
+        <?php endif; ?>
+        
+        <?php if ($userRole === 'teacher'): ?>
+        <!-- Teacher-only menu items -->
+        <li class="nav-item"><a class="nav-link" data-nav="students" href="./teacher.php"><i class="bi bi-people me-1"></i><span class="btn-text">Siswa Saya</span></a></li>
+        <li class="nav-item"><a class="nav-link" data-nav="attendance" href="./teacher.php"><i class="bi bi-calendar-check me-1"></i><span class="btn-text">Kehadiran</span></a></li>
+        <?php endif; ?>
+        
+        <?php if ($userRole === 'parent'): ?>
+        <!-- Parent-only menu items -->
+        <li class="nav-item"><a class="nav-link" data-nav="child" href="./parent.php"><i class="bi bi-person-heart me-1"></i><span class="btn-text">Anak Saya</span></a></li>
+        <li class="nav-item"><a class="nav-link" data-nav="attendance" href="./parent.php"><i class="bi bi-calendar-check me-1"></i><span class="btn-text">Kehadiran</span></a></li>
+        <?php endif; ?>
+        
+        <?php if ($userRole === 'student'): ?>
+        <!-- Student-only menu items -->
+        <li class="nav-item"><a class="nav-link" data-nav="attendance" href="./student.php"><i class="bi bi-calendar-check me-1"></i><span class="btn-text">Kehadiran Saya</span></a></li>
+        <li class="nav-item"><a class="nav-link" data-nav="profile" href="./student.php"><i class="bi bi-person me-1"></i><span class="btn-text">Profil</span></a></li>
+        <?php endif; ?>
+        
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="bi bi-person-circle me-1"></i><?= e($_SESSION['name'] ?? 'User') ?>
           </a>
           <ul class="dropdown-menu">
+            <?php if ($userRole === 'admin'): ?>
             <li><a class="dropdown-item" href="./admin_simple.php"><i class="bi bi-shield-check me-2"></i>Panel Admin</a></li>
             <li><a class="dropdown-item" href="./reports.php"><i class="bi bi-graph-up me-2"></i>Laporan</a></li>
+            <?php endif; ?>
+            
+            <?php if ($userRole === 'teacher'): ?>
+            <li><a class="dropdown-item" href="./teacher.php"><i class="bi bi-person-check me-2"></i>Dashboard Guru</a></li>
+            <?php endif; ?>
+            
+            <?php if ($userRole === 'parent'): ?>
+            <li><a class="dropdown-item" href="./parent.php"><i class="bi bi-person-heart me-2"></i>Dashboard Orang Tua</a></li>
+            <?php endif; ?>
+            
+            <?php if ($userRole === 'student'): ?>
+            <li><a class="dropdown-item" href="./student.php"><i class="bi bi-person me-2"></i>Dashboard Siswa</a></li>
+            <?php endif; ?>
+            
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="./logout.php"><i class="bi bi-box-arrow-right me-2"></i>Keluar</a></li>
           </ul>
