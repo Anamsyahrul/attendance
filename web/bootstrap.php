@@ -179,8 +179,8 @@ function is_holiday(DateTime $date): bool {
 function build_override_map(PDO $pdo, DateTime $start, DateTime $end): array {
     $map = [];
     try {
-        $stmt = $pdo->prepare('SELECT uid_hex, ts, raw_json FROM attendance WHERE ts >= ? AND ts < ? AND raw_json IS NOT NULL AND raw_json LIKE ?');
-        $stmt->execute([$start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s'), '%"type":"override"%']);
+        $stmt = $pdo->prepare('SELECT uid_hex, ts, raw_json FROM attendance WHERE ts >= ? AND ts < ? AND raw_json IS NOT NULL AND JSON_EXTRACT(raw_json, \'$.type\') = \'override\'');
+        $stmt->execute([$start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s')]);
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $js = @json_decode($row['raw_json'], true);
             if (!is_array($js) || ($js['type'] ?? '') !== 'override') {
