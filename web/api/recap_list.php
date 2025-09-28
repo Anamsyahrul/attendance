@@ -41,13 +41,13 @@ try {
 
     $rows = $st->fetchAll(PDO::FETCH_ASSOC);
 
-    $overrideMap = build_override_map($pdo, $start, $end);
+    $overrideMap = buat_peta_override($pdo, $start, $end);
     $today = new DateTime('today', $tz);
     $isPastDay = ($start < $today);
 
     $outRows = [];
     foreach ($rows as $r) {
-        [$statusMasuk, $statusPulang] = resolve_daily_status($r, $tz, $start, $lateAt, $endAt, $isPastDay, $requireCheckout, $overrideMap);
+        [$statusMasuk, $statusPulang] = selesaikan_status_harian($r, $tz, $start, $lateAt, $endAt, $isPastDay, $requireCheckout, $overrideMap);
 
         if ($q !== '') {
             $qLower = mb_strtolower($q, 'UTF-8');

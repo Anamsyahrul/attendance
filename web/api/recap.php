@@ -40,11 +40,11 @@ try {
     header('Content-Disposition: attachment; filename="' . $fname . '"');
     $out = fopen('php://output', 'w');
     fputcsv($out, ['date', 'name', 'uid_hex', 'room', 'status_masuk', 'status_pulang']);
-    $overrideMap = build_override_map($pdo, $start, $end);
+    $overrideMap = buat_peta_override($pdo, $start, $end);
     $today = new DateTime('today', $tz);
     $isPastDay = ($start < $today);
     while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        [$statusMasuk, $statusPulang] = resolve_daily_status($r, $tz, $start, $lateAt, $endAt, $isPastDay, $requireCheckout, $overrideMap);
+        [$statusMasuk, $statusPulang] = selesaikan_status_harian($r, $tz, $start, $lateAt, $endAt, $isPastDay, $requireCheckout, $overrideMap);
         fputcsv($out, [$start->format('Y-m-d'), $r['name'], $r['uid_hex'], $r['room'], $statusMasuk, $statusPulang]);
     }
     fclose($out);

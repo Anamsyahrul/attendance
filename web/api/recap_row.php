@@ -33,9 +33,9 @@ try {
   $isPastDay = ($start < $today);
   $requireCheckout = (bool) env('REQUIRE_CHECKOUT', false);
 
-  $overrideMap = build_override_map($pdo, $start, $end);
+  $overrideMap = buat_peta_override($pdo, $start, $end);
 
-  [$statusMasuk, $statusPulang] = resolve_daily_status($r, $tz, $start, $lateAt, $endAt, $isPastDay, $requireCheckout, $overrideMap);
+  [$statusMasuk, $statusPulang] = selesaikan_status_harian($r, $tz, $start, $lateAt, $endAt, $isPastDay, $requireCheckout, $overrideMap);
   $firstTime = $r['first_ts'] ? (new DateTime($r['first_ts'], $tz))->format('H:i') : null;
   $lastTime = $r['last_ts'] ? (new DateTime($r['last_ts'], $tz))->format('H:i') : null;
 

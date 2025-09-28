@@ -148,9 +148,9 @@ if ($view === 'recap') {
     $today = new DateTime('today', $tz);
     $isPastDay = ($start < $today);
     $requireCheckout = (bool) env('REQUIRE_CHECKOUT', false);
-    $overrideMap = build_override_map($pdo, $start, $end);
+    $overrideMap = buat_peta_override($pdo, $start, $end);
     foreach ($rowsRecap as &$rr) {
-        [$statusMasuk, $statusPulang] = resolve_daily_status($rr, $tz, $start, $lateAt, $endAt, $isPastDay, $requireCheckout, $overrideMap);
+        [$statusMasuk, $statusPulang] = selesaikan_status_harian($rr, $tz, $start, $lateAt, $endAt, $isPastDay, $requireCheckout, $overrideMap);
         $rr['masuk_status'] = $statusMasuk;
         $rr['pulang_status'] = $statusPulang;
         if ($statusMasuk === 'Tidak Hadir') {
