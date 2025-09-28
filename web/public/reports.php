@@ -2,6 +2,12 @@
 require_once __DIR__ . '/../bootstrap.php';
 wajib_masuk();
 
+// Hanya admin yang bisa akses
+if ($_SESSION['role'] !== 'admin') {
+    header('Location: index.php');
+    exit;
+}
+
 $pdo = pdo();
 $tz = new DateTimeZone(env('APP_TZ', 'Asia/Jakarta'));
 

@@ -54,14 +54,19 @@ try {
 
     $autoCreate = (bool) env('AUTO_CREATE_UNKNOWN', false);
 
+    // Inisialisasi NotificationManager
+    require_once __DIR__ . '/../classes/NotificationManager.php';
+    $notificationManager = new NotificationManager($pdo, $ENV);
+
     $pdo->beginTransaction();
 
     $insert = $pdo->prepare('INSERT INTO attendance (user_id, device_id, ts, uid_hex, raw_json) VALUES (?, ?, ?, ?, ?)');
-    $findUser = $pdo->prepare('SELECT id FROM users WHERE uid_hex = ?');
-    $createUser = $pdo->prepare('INSERT INTO users (name, uid_hex, room) VALUES (?, ?, ?)');
+    $findUser = $pdo->prepare('SELECT id, name, room, role FROM users WHERE uid_hex = ?');
+    $createUser = $pdo->prepare('INSERT INTO users (name, uid_hex, room, role) VALUES (?, ?, ?, ?)');
 
     $saved = 0;
     $errors = [];
+    $notifications = [];
 
     foreach ($events as $i => $e) {
         $uidHex = isset($e['uid']) ? strtolower(preg_replace('/[^0-9a-f]/i', '', $e['uid'])) : null;
@@ -79,26 +84,111 @@ try {
         }
         $tsDb = $dt->format('Y-m-d H:i:s');
 
+        // Cek apakah hari ini adalah hari libur
+        $today = new DateTime('today', new DateTimeZone(env('APP_TZ', 'Asia/Jakarta')));
+        $isHoliday = false;
+        
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM holiday_calendar WHERE holiday_date = ?");
+        $stmt->execute([$today->format('Y-m-d')]);
+        if ($stmt->fetchColumn() > 0) {
+            $isHoliday = true;
+        }
+        
+        // Cek apakah hari ini adalah weekend
+        $isWeekend = in_array($today->format('N'), [6, 7]); // 6 = Sabtu, 7 = Minggu
+        
+        // Skip jika hari libur atau weekend (kecuali jika diaktifkan)
+        if (($isHoliday || $isWeekend) && !env('ALLOW_WEEKEND_HOLIDAY_SCAN', false)) {
+            $notifications[] = [
+                'index' => $i,
+                'message' => 'Hari libur - scan tidak dicatat',
+                'is_holiday' => $isHoliday,
+                'is_weekend' => $isWeekend
+            ];
+            continue;
+        }
+
         // Resolve user id
         $userId = null;
+        $userName = null;
+        $userRoom = null;
+        $userRole = null;
+        
         $findUser->execute([$uidHex]);
         $u = $findUser->fetch(PDO::FETCH_ASSOC);
         if ($u) {
             $userId = (int)$u['id'];
+            $userName = $u['name'];
+            $userRoom = $u['room'];
+            $userRole = $u['role'];
         } elseif ($autoCreate) {
             $name = 'Unknown ' . strtoupper($uidHex);
-            $createUser->execute([$name, $uidHex, '']);
+            $createUser->execute([$name, $uidHex, '', 'student']);
             $userId = (int)$pdo->lastInsertId();
+            $userName = $name;
+            $userRoom = '';
+            $userRole = 'student';
         }
+
+        if (!$userId) {
+            $errors[] = ['index' => $i, 'error' => 'User not found and auto-create disabled'];
+            continue;
+        }
+
+        // Cek keterlambatan
+        $schoolStart = env('SCHOOL_START', '07:30');
+        $lateThreshold = env('LATE_THRESHOLD', 15); // menit
+        
+        $schoolStartTime = new DateTime($today->format('Y-m-d') . ' ' . $schoolStart, new DateTimeZone(env('APP_TZ', 'Asia/Jakarta')));
+        $lateTime = clone $schoolStartTime;
+        $lateTime->modify("+{$lateThreshold} minutes");
+        
+        $isLate = $dt > $lateTime;
+        $lateMinutes = 0;
+        
+        if ($isLate) {
+            $lateMinutes = $dt->diff($schoolStartTime)->i;
+            
+            // Kirim notifikasi terlambat
+            $notificationManager->notifyLateAttendance(
+                $userId, 
+                $userName, 
+                $lateMinutes
+            );
+        }
+
+        // Tambahkan informasi tambahan ke raw_json
+        $e['is_late'] = $isLate;
+        $e['late_minutes'] = $lateMinutes;
+        $e['is_holiday'] = $isHoliday;
+        $e['is_weekend'] = $isWeekend;
+        $e['user_name'] = $userName;
+        $e['user_room'] = $userRoom;
 
         $rawJson = json_encode($e, JSON_UNESCAPED_SLASHES);
         $insert->execute([$userId, $deviceId, $tsDb, $uidHex, $rawJson]);
         $saved++;
+
+        // Log ke audit
+        $stmt = $pdo->prepare("
+            INSERT INTO audit_logs (user_id, action, details, ip_address, created_at) 
+            VALUES (?, ?, ?, ?, NOW())
+        ");
+        $stmt->execute([
+            $userId, 
+            'attendance_scan', 
+            "RFID scan - " . ($isLate ? "Terlambat {$lateMinutes} menit" : "Tepat waktu"), 
+            $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+        ]);
+
+        // Update last login
+        $stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+        $stmt->execute([$userId]);
     }
 
     $pdo->commit();
 
-    echo json_encode(['ok' => true, 'saved' => $saved, 'errors' => $errors]);
+    echo json_encode(['ok' => true, 'saved' => $saved, 'errors' => $errors, 'notifications' => $notifications]);
 } catch (Throwable $e) {
     if ($pdo instanceof PDO && $pdo->inTransaction()) {
         $pdo->rollBack();
