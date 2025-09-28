@@ -2,6 +2,10 @@
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../classes/AuthService.php';
 
+// Initialize PDO and config
+$pdo = pdo();
+$config = $ENV; // Pass the global config array
+
 $authService = new AuthService($pdo, $config);
 $authService->requireRole(['parent']);
 

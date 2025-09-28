@@ -129,7 +129,9 @@ class AuthService {
      * Set user session
      */
     private function setSession($user) {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['role'] = $user['role'];
@@ -142,7 +144,9 @@ class AuthService {
      * Logout user
      */
     public function logout() {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         session_destroy();
     }
     
@@ -150,7 +154,9 @@ class AuthService {
      * Check if user is logged in
      */
     public function isLoggedIn() {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         return isset($_SESSION['user_id']) && isset($_SESSION['role']);
     }
     
