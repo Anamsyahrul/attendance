@@ -1,9 +1,12 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
 
+// Initialize PDO
+$pdo = pdo();
+
 // Simple admin check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: login_simple.php');
+    header('Location: login.php');
     exit;
 }
 

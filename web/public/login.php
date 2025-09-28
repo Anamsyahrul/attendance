@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
 
+// Initialize PDO
+$pdo = pdo();
+
 // Simple login system that works with existing system
 $error = '';
 $success = '';
