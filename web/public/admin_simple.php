@@ -1,10 +1,10 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
 
-// Initialize PDO
+// Inisialisasi PDO
 $pdo = pdo();
 
-// Simple admin check
+// Pemeriksaan admin sederhana
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: login.php');
     exit;
@@ -13,7 +13,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 $user = $_SESSION;
 $message = '';
 
-// Handle form submissions
+// Tangani pengiriman form
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     
@@ -42,15 +42,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($username && $password && $email && $name) {
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
                 
-                // Generate unique UID hex for the user
+                // Generate UID hex unik untuk pengguna
                 $uidHex = strtolower(substr(md5($username . time() . rand()), 0, 16));
                 
                 $sql = "INSERT INTO users (username, password, email, role, name, room, uid_hex, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, 1)";
                 $stmt = $pdo->prepare($sql);
                 if ($stmt->execute([$username, $hashedPassword, $email, $role, $name, $room, $uidHex])) {
-                    $message = 'User berhasil dibuat dengan UID: ' . $uidHex;
+                    $message = 'Pengguna berhasil dibuat dengan UID: ' . $uidHex;
                 } else {
-                    $message = 'Gagal membuat user';
+                    $message = 'Gagal membuat pengguna';
                 }
             } else {
                 $message = 'Semua field harus diisi';
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get data for display
+// Ambil data untuk ditampilkan
 $users = $pdo->query("SELECT * FROM users ORDER BY role, name")->fetchAll(PDO::FETCH_ASSOC);
 $totalUsers = count($users);
 $adminUsers = count(array_filter($users, function($u) { return $u['role'] === 'admin'; }));
@@ -74,7 +74,7 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Panel - <?= e(env('SCHOOL_NAME', 'SMA Bustanul Arifin')) ?></title>
+    <title>Panel Admin - <?= e(env('SCHOOL_NAME', 'SMA Bustanul Arifin')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -88,7 +88,7 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="admin_simple.php">
-                <i class="bi bi-shield-check"></i> Admin Panel
+                <i class="bi bi-shield-check"></i> Panel Admin
             </a>
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text me-3">
@@ -98,10 +98,10 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
                     <i class="bi bi-house"></i> Dashboard
                 </a>
                 <a class="nav-link" href="reports.php">
-                    <i class="bi bi-graph-up"></i> Reports
+                    <i class="bi bi-graph-up"></i> Laporan
                 </a>
                 <a class="nav-link" href="logout.php">
-                    <i class="bi bi-box-arrow-right"></i> Logout
+                    <i class="bi bi-box-arrow-right"></i> Keluar
                 </a>
             </div>
         </div>

@@ -1,13 +1,13 @@
 <?php
-// bootstrap.php - loads env, sets timezone, provides PDO + helpers
+// bootstrap.php - memuat konfigurasi, mengatur zona waktu, menyediakan PDO + helper
 
-// Load env as PHP array from web/config.php
+// Muat konfigurasi sebagai array PHP dari web/config.php
 $envPath = __DIR__ . '/config.php';
 if (!file_exists($envPath)) {
-    // fallback to default values
+    // nilai default jika file tidak ada
     $ENV = [
         'DB_HOST' => '127.0.0.1',
-        'DB_NAME' => 'attendance',
+        'DB_NAME' => 'kehadiran',
         'DB_USER' => 'root',
         'DB_PASS' => '',
         'APP_TZ' => 'Asia/Jakarta',
@@ -17,7 +17,7 @@ if (!file_exists($envPath)) {
         'WEEKLY_OFF' => [6, 7],
         'ADMIN_USER' => 'admin',
         'ADMIN_PASS' => 'admin',
-        'SCHOOL_EMAIL' => 'admin@school.com',
+        'SCHOOL_EMAIL' => 'admin@sekolah.com',
         'SCHOOL_PHONE' => '085290582063',
         'NOTIFICATION_EMAIL' => true,
         'NOTIFICATION_SMS' => false,
@@ -35,7 +35,7 @@ function env($key, $default = null) {
 
 date_default_timezone_set(env('APP_TZ', 'Asia/Jakarta'));
 
-// Start output buffering to prevent headers already sent error
+// Mulai output buffering untuk mencegah error headers already sent
 ob_start();
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -46,7 +46,7 @@ function pdo(): PDO {
     static $pdo = null;
     if ($pdo) return $pdo;
     $host = env('DB_HOST', '127.0.0.1');
-    $db   = env('DB_NAME', 'attendance');
+    $db   = env('DB_NAME', 'kehadiran');
     $user = env('DB_USER', 'root');
     $pass = env('DB_PASS', '');
     $dsn = "mysql:host={$host};dbname={$db};charset=utf8mb4";
@@ -68,8 +68,8 @@ function verify_hmac(string $secret, string $message, string $provided): bool {
 }
 
 /**
- * Persist selected env values back to web/.env.php
- * Only merges provided keys; keeps others intact.
+ * Simpan nilai konfigurasi yang dipilih kembali ke web/.env.php
+ * Hanya menggabungkan kunci yang disediakan; menjaga yang lain tetap utuh.
  */
 function auth_username(): string {
     return (string) env('ADMIN_USER', 'admin');
@@ -79,11 +79,11 @@ function auth_password(): string {
     return (string) env('ADMIN_PASS', 'kelompok2');
 }
 
-function is_logged_in(): bool {
+function sudah_masuk(): bool {
     return !empty($_SESSION['auth_logged_in']);
 }
 
-function login_user(): void {
+function masuk_pengguna(): void {
     if (session_status() === PHP_SESSION_ACTIVE) {
         session_regenerate_id(true);
     }
@@ -91,7 +91,7 @@ function login_user(): void {
     $_SESSION['auth_username'] = auth_username();
 }
 
-function logout_user(): void {
+function keluar_pengguna(): void {
     if (session_status() !== PHP_SESSION_ACTIVE) {
         return;
     }
@@ -103,21 +103,21 @@ function logout_user(): void {
     session_destroy();
 }
 
-function attempt_login(string $username, string $password): bool {
+function coba_masuk(string $username, string $password): bool {
     $validUser = auth_username();
     $validPass = auth_password();
     if ($username === $validUser && (function_exists('hash_equals') ? hash_equals((string)$validPass, (string)$password) : (string)$validPass === (string)$password)) {
-        login_user();
+        masuk_pengguna();
         return true;
     }
     return false;
 }
 
-function require_login(): void {
+function wajib_masuk(): void {
     if (PHP_SAPI === 'cli') {
         return;
     }
-    if (is_logged_in()) {
+    if (sudah_masuk()) {
         return;
     }
     $redirect = $_SERVER['REQUEST_URI'] ?? 'index.php';
@@ -125,7 +125,7 @@ function require_login(): void {
     exit;
 }
 
-function save_env(array $overrides): bool {
+function simpan_konfigurasi(array $overrides): bool {
     $path = __DIR__ . '/config.php';
     $cur = file_exists($path) ? (require $path) : [];
     if (!is_array($cur)) $cur = [];
@@ -149,7 +149,7 @@ function save_env(array $overrides): bool {
     return (bool)file_put_contents($path, $php);
 }
 
-function weekly_off_days(): array {
+function hari_libur_mingguan(): array {
     $raw = trim((string) env('WEEKLY_OFF_DAYS', ''));
     $days = [];
     if ($raw !== '') {
@@ -167,14 +167,14 @@ function weekly_off_days(): array {
     return array_values($days);
 }
 
-function is_holiday(DateTime $date): bool {
+function adalah_libur(DateTime $date): bool {
     $holidaysStr = (string) env('HOLIDAYS', '');
     $y = $date->format('Y-m-d');
     if ($holidaysStr !== '') {
         $list = array_filter(array_map('trim', explode(',', $holidaysStr)));
         if (in_array($y, $list, true)) return true;
     }
-    $weeklyOff = weekly_off_days();
+    $weeklyOff = hari_libur_mingguan();
     if ($weeklyOff) {
         $w = (int) $date->format('N');
         if (in_array($w, $weeklyOff, true)) return true;
@@ -182,7 +182,7 @@ function is_holiday(DateTime $date): bool {
     return false;
 }
 
-function build_override_map(PDO $pdo, DateTime $start, DateTime $end): array {
+function buat_peta_override(PDO $pdo, DateTime $start, DateTime $end): array {
     $map = [];
     try {
         $stmt = $pdo->prepare('SELECT uid_hex, ts, raw_json FROM attendance WHERE ts >= ? AND ts < ? AND raw_json IS NOT NULL AND JSON_EXTRACT(raw_json, \'$.type\') = \'override\'');
@@ -211,7 +211,7 @@ function build_override_map(PDO $pdo, DateTime $start, DateTime $end): array {
     return $map;
 }
 
-function resolve_daily_status(array $row, DateTimeZone $tz, DateTime $startDay, DateTime $lateAt, DateTime $endAt, bool $isPastDay, bool $requireCheckout, array $overrideMap): array {
+function selesaikan_status_harian(array $row, DateTimeZone $tz, DateTime $startDay, DateTime $lateAt, DateTime $endAt, bool $isPastDay, bool $requireCheckout, array $overrideMap): array {
     $statusMasuk = 'Tidak Hadir';
     $statusPulang = '';
     if (!empty($row['first_ts'])) {
@@ -229,10 +229,10 @@ function resolve_daily_status(array $row, DateTimeZone $tz, DateTime $startDay, 
             } else {
                 $now = new DateTime('now', $tz);
                 $cut21 = DateTime::createFromFormat('Y-m-d H:i', $startDay->format('Y-m-d') . ' 21:00', $tz) ?: clone $endAt;
-                if ($now > $cut21 && !is_holiday($startDay)) {
+                if ($now > $cut21 && !adalah_libur($startDay)) {
                     $statusPulang = 'Bolos';
                 } elseif ($requireCheckout) {
-                    if ($now > $endAt && !is_holiday($startDay)) {
+                    if ($now > $endAt && !adalah_libur($startDay)) {
                         $statusPulang = 'Bolos';
                     } else {
                         $statusPulang = 'Belum Pulang';

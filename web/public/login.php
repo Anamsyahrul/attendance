@@ -1,14 +1,14 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
 
-// Initialize PDO
+// Inisialisasi PDO
 $pdo = pdo();
 
-// Simple login system that works with existing system
+// Sistem login sederhana yang bekerja dengan sistem yang ada
 $error = '';
 $success = '';
 
-// Handle login
+// Tangani login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -17,9 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($username) || empty($password)) {
         $error = 'Username dan password harus diisi';
     } else {
-        // Check if it's the old admin login
+        // Periksa apakah ini login admin lama
         if ($username === 'admin' && $password === 'admin') {
-            // Set session for admin
+            // Setel session untuk admin
             $_SESSION['user_id'] = 1;
             $_SESSION['username'] = 'admin';
             $_SESSION['role'] = 'admin';
@@ -31,14 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         
-        // Check database for other users
+        // Periksa database untuk pengguna lain
         $sql = "SELECT * FROM users WHERE username = ? AND role = ? AND is_active = 1";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$username, $role]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($user && password_verify($password, $user['password'])) {
-            // Set session
+            // Setel session
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['room'] = $user['room'];
             $_SESSION['login_time'] = time();
             
-            // Redirect based on role
+            // Alihkan berdasarkan role
             switch ($user['role']) {
                 case 'admin':
                     header('Location: admin_simple.php');
@@ -291,34 +291,34 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
                     <form method="POST" id="loginForm">
                         <div class="mb-4">
-                            <label class="form-label">Pilih Role</label>
+                            <label class="form-label">Pilih Peran</label>
                             <div class="row g-3">
                                 <div class="col-6">
                                     <div class="role-card card text-center p-3" data-role="admin">
                                         <i class="bi bi-shield-check role-icon admin-icon"></i>
                                         <h6 class="mt-2">Admin</h6>
-                                        <small class="text-muted">Full Access</small>
+                                        <small class="text-muted">Akses Penuh</small>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="role-card card text-center p-3" data-role="teacher">
                                         <i class="bi bi-person-check role-icon teacher-icon"></i>
-                                        <h6 class="mt-2">Teacher</h6>
-                                        <small class="text-muted">Class Management</small>
+                                        <h6 class="mt-2">Guru</h6>
+                                        <small class="text-muted">Kelola Kelas</small>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="role-card card text-center p-3" data-role="parent">
                                         <i class="bi bi-person-heart role-icon parent-icon"></i>
-                                        <h6 class="mt-2">Parent</h6>
-                                        <small class="text-muted">View Child</small>
+                                        <h6 class="mt-2">Orang Tua</h6>
+                                        <small class="text-muted">Lihat Anak</small>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="role-card card text-center p-3" data-role="student">
                                         <i class="bi bi-person role-icon student-icon"></i>
-                                        <h6 class="mt-2">Student</h6>
-                                        <small class="text-muted">View Own</small>
+                                        <h6 class="mt-2">Siswa</h6>
+                                        <small class="text-muted">Lihat Sendiri</small>
                                     </div>
                                 </div>
                             </div>
@@ -326,24 +326,24 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
                         </div>
 
                         <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
+                            <label for="username" class="form-label">Nama Pengguna</label>
                             <div class="input-group">
                                 <span class="input-group-text">
                                     <i class="bi bi-person"></i>
                                 </span>
                                 <input type="text" class="form-control" id="username" name="username" 
-                                       placeholder="Masukkan username" required>
+                                       placeholder="Masukkan nama pengguna" required>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
+                            <label for="password" class="form-label">Kata Sandi</label>
                             <div class="input-group">
                                 <span class="input-group-text">
                                     <i class="bi bi-lock"></i>
                                 </span>
                                 <input type="password" class="form-control" id="password" name="password" 
-                                       placeholder="Masukkan password" required>
+                                       placeholder="Masukkan kata sandi" required>
                                 <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                     <i class="bi bi-eye"></i>
                                 </button>
@@ -352,21 +352,21 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-box-arrow-in-right"></i> Login
+                                <i class="bi bi-box-arrow-in-right"></i> Masuk
                             </button>
                         </div>
                     </form>
 
                     <div class="credential-info">
-                        <h6><i class="bi bi-info-circle"></i> Kredensial Login:</h6>
+                        <h6><i class="bi bi-info-circle"></i> Kredensial Masuk:</h6>
                         <div class="row">
                             <div class="col-6">
                                 <small><strong>Admin:</strong> admin / admin</small><br>
-                                <small><strong>Teacher:</strong> teacher1 / password</small>
+                                <small><strong>Guru:</strong> teacher1 / password</small>
                             </div>
                             <div class="col-6">
-                                <small><strong>Parent:</strong> parent1 / password</small><br>
-                                <small><strong>Student:</strong> (akan dibuat otomatis)</small>
+                                <small><strong>Orang Tua:</strong> parent1 / password</small><br>
+                                <small><strong>Siswa:</strong> (akan dibuat otomatis)</small>
                             </div>
                         </div>
                     </div>
@@ -377,12 +377,12 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Theme Toggle Functionality
+        // Fungsi Toggle Tema
         const themeToggle = document.getElementById('themeToggle');
         const themeIcon = document.getElementById('themeIcon');
         const html = document.documentElement;
 
-        // Load saved theme or default to light
+        // Muat tema tersimpan atau default ke terang
         const savedTheme = localStorage.getItem('theme') || 'light';
         html.setAttribute('data-bs-theme', savedTheme);
         updateThemeIcon(savedTheme);
@@ -399,29 +399,29 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
         function updateThemeIcon(theme) {
             if (theme === 'dark') {
                 themeIcon.className = 'bi bi-moon-fill';
-                themeToggle.title = 'Switch to Light Mode';
+                themeToggle.title = 'Beralih ke Mode Terang';
             } else {
                 themeIcon.className = 'bi bi-sun-fill';
-                themeToggle.title = 'Switch to Dark Mode';
+                themeToggle.title = 'Beralih ke Mode Gelap';
             }
         }
 
-        // Role selection
+        // Pemilihan peran
         document.querySelectorAll('.role-card').forEach(card => {
             card.addEventListener('click', function() {
-                // Remove selected class from all cards
+                // Hapus kelas terpilih dari semua kartu
                 document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
-                // Add selected class to clicked card
+                // Tambahkan kelas terpilih ke kartu yang diklik
                 this.classList.add('selected');
-                // Update hidden input
+                // Perbarui input tersembunyi
                 document.getElementById('selectedRole').value = this.dataset.role;
             });
         });
 
-        // Set default selection
+        // Setel pilihan default
         document.querySelector('[data-role="admin"]').classList.add('selected');
 
-        // Toggle password visibility
+        // Toggle visibilitas kata sandi
         document.getElementById('togglePassword').addEventListener('click', function() {
             const passwordInput = document.getElementById('password');
             const icon = this.querySelector('i');
@@ -435,7 +435,7 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
             }
         });
 
-        // Form validation
+        // Validasi form
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
@@ -443,18 +443,18 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
             if (!username || !password) {
                 e.preventDefault();
-                alert('Username dan password harus diisi');
+                alert('Nama pengguna dan kata sandi harus diisi');
                 return;
             }
 
             if (!role) {
                 e.preventDefault();
-                alert('Pilih role terlebih dahulu');
+                alert('Pilih peran terlebih dahulu');
                 return;
             }
         });
 
-        // Add smooth transitions
+        // Tambahkan transisi halus
         document.addEventListener('DOMContentLoaded', function() {
             document.body.style.opacity = '0';
             document.body.style.transition = 'opacity 0.5s ease';
