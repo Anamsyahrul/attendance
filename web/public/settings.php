@@ -166,7 +166,7 @@ if (isset($weeklyOffDays)) {
   </div>
 </nav>
 
-<?php $appBase = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/'); ?>
+<?php $appBase = rtrim(dirname(dirname(dirname($_SERVER['SCRIPT_NAME']))), '/'); ?>
 
 <div class="container">
   <h3 class="mb-3">Pengaturan</h3>
