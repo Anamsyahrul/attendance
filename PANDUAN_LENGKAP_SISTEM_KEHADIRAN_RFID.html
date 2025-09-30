@@ -359,48 +359,89 @@ mysql -u root attendance < web\sql\essential_tables.sql
             </div>
 
             <div class="success">
-                <strong>✅ Langkah Wiring:</strong>
+                <strong>✅ Langkah Wiring Sederhana:</strong>
                 <ol>
                     <li><strong>Siapkan Komponen:</strong>
                         <ul>
                             <li>ESP32 DevKit v1</li>
                             <li>Modul RC522 RFID</li>
                             <li>Breadboard</li>
-                            <li>Kabel jumper (warna berbeda untuk mudah ingat)</li>
+                            <li>Kabel jumper (male-to-male)</li>
                         </ul>
                     </li>
 
                     <li><strong>Sambungkan RC522 ke ESP32:</strong>
-                        <div class="code-block">
-<span class="comment">// RC522 → ESP32 (8 kabel wajib)</span>
-<span class="comment">// Gunakan warna kabel berbeda untuk setiap pin</span>
-
-RC522 SDA  → ESP32 GPIO5   (kabel orange)
-RC522 SCK  → ESP32 GPIO18  (kabel kuning)
-RC522 MOSI → ESP32 GPIO23  (kabel biru)
-RC522 MISO → ESP32 GPIO19  (kabel hijau)
-RC522 RST  → ESP32 GPIO27  (kabel ungu)
-RC522 3.3V → ESP32 3V3     (kabel merah)
-RC522 GND  → ESP32 GND     (kabel hitam)
+                        <div class="highlight">
+                            <strong>🔌 Koneksi Wajib (8 kabel):</strong>
+                            <table class="table">
+                                <tr>
+                                    <th>RC522 Pin</th>
+                                    <th>ESP32 Pin</th>
+                                    <th>Kabel Warna</th>
+                                    <th>Keterangan</th>
+                                </tr>
+                                <tr>
+                                    <td>SDA</td>
+                                    <td>D5 (GPIO5)</td>
+                                    <td>Orange</td>
+                                    <td>Data komunikasi</td>
+                                </tr>
+                                <tr>
+                                    <td>SCK</td>
+                                    <td>D18 (GPIO18)</td>
+                                    <td>Kuning</td>
+                                    <td>Clock signal</td>
+                                </tr>
+                                <tr>
+                                    <td>MOSI</td>
+                                    <td>D23 (GPIO23)</td>
+                                    <td>Biru</td>
+                                    <td>Data keluar ESP32</td>
+                                </tr>
+                                <tr>
+                                    <td>MISO</td>
+                                    <td>D19 (GPIO19)</td>
+                                    <td>Hijau</td>
+                                    <td>Data masuk ESP32</td>
+                                </tr>
+                                <tr>
+                                    <td>RST</td>
+                                    <td>D27 (GPIO27)</td>
+                                    <td>Ungu</td>
+                                    <td>Reset RC522</td>
+                                </tr>
+                                <tr>
+                                    <td>3.3V</td>
+                                    <td>3V3</td>
+                                    <td>Merah</td>
+                                    <td>Power 3.3V</td>
+                                </tr>
+                                <tr>
+                                    <td>GND</td>
+                                    <td>GND</td>
+                                    <td>Hitam</td>
+                                    <td>Ground</td>
+                                </tr>
+                            </table>
                         </div>
                     </li>
 
-                    <li><strong>Sambungkan Power:</strong>
-                        <div class="code-block">
-<span class="comment">// Power Supply → ESP32</span>
-<span class="comment">// HATI-HATI: Salah sambung bisa rusak ESP32!</span>
-
-Power +5V → ESP32 VIN pin (bukan 3V3!)
-Power GND → ESP32 GND
+                    <li><strong>Sambungkan Power Supply:</strong>
+                        <div class="highlight">
+                            <strong>🔋 Power Supply (2 kabel):</strong>
+                            <ul>
+                                <li><strong>Power +5V → ESP32 VIN pin</strong> (bukan 3V3!)</li>
+                                <li><strong>Power GND → ESP32 GND</strong></li>
+                            </ul>
                         </div>
                     </li>
 
                     <li><strong>Periksa Koneksi:</strong>
                         <ul>
-                            <li>Pastikan tidak ada kabel yang longgar</li>
-                            <li>Periksa polaritas (+ ke +, - ke -)</li>
-                            <li>RC522 MENDAPAT 3.3V, bukan 5V!</li>
-                            <li>VIN ESP32 mendapat 5V dari power supply</li>
+                            <li>✅ Semua kabel terpasang dengan benar</li>
+                            <li>✅ Tidak ada kabel yang longgar</li>
+                            <li>✅ RC522 mendapat 3.3V (bukan 5V)</li>
+                            <li>✅ ESP32 VIN mendapat 5V dari power supply</li>
                         </ul>
                     </li>
                 </ol>
