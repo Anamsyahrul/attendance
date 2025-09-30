@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan Lengkap Sistem Kehadiran RFID Enterprise</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin: 0;
+        }
+        .header .subtitle {
+            color: #666;
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        .version {
+            background: #28a745;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: bold;
+        }
+        .toc {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .toc h2 {
+            color: #007bff;
+            margin-top: 0;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 8px 0;
+        }
+        .toc a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+        }
+        .toc a:hover {
+            color: #007bff;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            border-left: 4px solid #007bff;
+            background: #f8f9fa;
+        }
+        .section h2 {
+            color: #007bff;
+            margin-top: 0;
+        }
+        .section h3 {
+            color: #495057;
+            margin-top: 25px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .feature-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .feature-card h4 {
+            color: #007bff;
+            margin-top: 0;
+        }
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block .comment {
+            color: #68d391;
+        }
+        .code-block .keyword {
+            color: #f687b3;
+        }
+        .code-block .string {
+            color: #fbb6ce;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .warning {
+            background: #f8d7da;
+            padding: 15px;
+            border-left: 4px solid #dc3545;
+            margin: 15px 0;
+        }
+        .success {
+            background: #d4edda;
+            padding: 15px;
+            border-left: 4px solid #28a745;
+            margin: 15px 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-card .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .table th, .table td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+        .table th {
+            background: #007bff;
+            color: white;
+        }
+        .table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #dee2e6;
+            color: #666;
+        }
+        @media print {
+            body { background: white; }
+            .container { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Sistem Kehadiran RFID Enterprise</h1>
+            <div class="subtitle">Panduan Lengkap Implementasi & Penggunaan</div>
+            <div class="version">Versi 2.0.0</div>
+        </div>
+
+        <div class="toc">
+            <h2>📋 Daftar Isi</h2>
+            <ul>
+                <li><a href="#overview">1. Overview Sistem</a></li>
+                <li><a href="#features">2. Fitur Utama</a></li>
+                <li><a href="#installation">3. Instalasi & Setup</a></li>
+                <li><a href="#hardware">4. Hardware & Wiring</a></li>
+                <li><a href="#software">5. Software Configuration</a></li>
+                <li><a href="#usage">6. Cara Penggunaan</a></li>
+                <li><a href="#database">7. Struktur Database</a></li>
+                <li><a href="#api">8. API Documentation</a></li>
+                <li><a href="#troubleshooting">9. Troubleshooting</a></li>
+                <li><a href="#maintenance">10. Maintenance & Backup</a></li>
+                <li><a href="#security">11. Security & Best Practices</a></li>
+                <li><a href="#support">12. Support & Contact</a></li>
+            </ul>
+        </div>
+
+        <div class="section" id="overview">
+            <h2>1. 📖 Overview Sistem</h2>
+            <p>Sistem Kehadiran RFID Enterprise adalah solusi lengkap untuk monitoring kehadiran berbasis RFID yang dirancang khusus untuk institusi pendidikan. Sistem ini menggabungkan teknologi ESP32, RFID RC522, dan web application PHP/MySQL untuk memberikan solusi kehadiran yang modern, aman, dan mudah digunakan.</p>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number">202</div>
+                    <div class="label">Pengguna Terdaftar</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">15,691</div>
+                    <div class="label">Record Kehadiran</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">14</div>
+                    <div class="label">Tabel Database</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">10+</div>
+                    <div class="label">Fitur Utama</div>
+                </div>
+            </div>
+
+            <h3>🎯 Tujuan Sistem</h3>
+            <ul>
+                <li>Mengotomatisasi proses pencatatan kehadiran</li>
+                <li>Menyediakan laporan kehadiran yang akurat dan real-time</li>
+                <li>Memberikan notifikasi otomatis untuk keterlambatan</li>
+                <li>Menyediakan dashboard multi-role untuk berbagai pengguna</li>
+                <li>Memastikan keamanan data dengan sistem autentikasi yang robust</li>
+            </ul>
+        </div>
+
+        <div class="section" id="features">
+            <h2>2. 🌟 Fitur Utama</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🔐 Sistem Autentikasi & Keamanan</h4>
+                    <ul>
+                        <li>Rate Limiting (5 percobaan per 15 menit)</li>
+                        <li>Remember Me (30 hari)</li>
+                        <li>Session Management & Audit Logging</li>
+                        <li>Role-based Access Control</li>
+                        <li>IP-based Security</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>🔔 Sistem Notifikasi Real-time</h4>
+                    <ul>
+                        <li>Notification Bell di navbar</li>
+                        <li>Auto-refresh setiap 30 detik</li>
+                        <li>Mark as Read functionality</li>
+                        <li>Email & SMS Queue system</li>
+                        <li>Role-based Distribution</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>💾 Backup & Recovery System</h4>
+                    <ul>
+                        <li>Full Database Backup (mysqldump)</li>
+                        <li>Configuration Backup</li>
+                        <li>Automated Cleanup & Restore</li>
+                        <li>Backup Management Interface</li>
+                        <li>Retention Policy</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>👥 Manajemen Pengguna Lengkap</h4>
+                    <ul>
+                        <li>CRUD Operations</li>
+                        <li>Role Management (Admin, Guru, Orang Tua, Siswa)</li>
+                        <li>Advanced Search & Filter</li>
+                        <li>Password Reset & User Activation</li>
+                        <li>Pagination untuk data besar</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>📊 Sistem Laporan Advanced</h4>
+                    <ul>
+                        <li>Statistics Dashboard (real-time)</li>
+                        <li>Interactive Charts (Chart.js)</li>
+                        <li>Export PDF/CSV/HTML</li>
+                        <li>Monthly Trends & Class Reports</li>
+                        <li>Role-based Statistics</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>📱 RFID Attendance System</h4>
+                    <ul>
+                        <li>Advanced Late Detection</li>
+                        <li>Holiday & Weekend Detection</li>
+                        <li>Automatic Notifications</li>
+                        <li>Real-time Processing</li>
+                        <li>User Information Enrichment</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="installation">
+            <h2>3. 🚀 Instalasi & Setup</h2>
+            
+            <h3>3.1 Persyaratan Sistem</h3>
+            <table class="table">
+                <tr>
+                    <th>Komponen</th>
+                    <th>Minimum</th>
+                    <th>Rekomendasi</th>
+                </tr>
+                <tr>
+                    <td>Operating System</td>
+                    <td>Windows 10</td>
+                    <td>Windows 11</td>
+                </tr>
+                <tr>
+                    <td>PHP</td>
+                    <td>8.0</td>
+                    <td>8.1+</td>
+                </tr>
+                <tr>
+                    <td>MySQL</td>
+                    <td>8.0</td>
+                    <td>8.0+</td>
+                </tr>
+                <tr>
+                    <td>RAM</td>
+                    <td>4GB</td>
+                    <td>8GB+</td>
+                </tr>
+                <tr>
+                    <td>Storage</td>
+                    <td>2GB</td>
+                    <td>5GB+</td>
+                </tr>
+            </table>
+
+            <h3>3.2 Setup Server (Laragon)</h3>
+            <div class="code-block">
+<span class="comment"># 1. Clone repository</span>
+git clone https://github.com/Anamsyahrul/attendance.git
+cd attendance
+
+<span class="comment"># 2. Start Laragon</span>
+<span class="comment"># Buka Laragon dan klik "Start All"</span>
+
+<span class="comment"># 3. Import database</span>
+mysql -u root attendance < web/sql/schema.sql
+mysql -u root attendance < web/sql/essential_tables.sql
+
+<span class="comment"># 4. Akses sistem</span>
+<span class="comment"># Buka: http://localhost/attendance/login.php</span>
+<span class="comment"># Login: admin / admin</span>
+            </div>
+
+            <h3>3.3 Setup ESP32 Firmware</h3>
+            <div class="code-block">
+<span class="comment">// Edit config.h</span>
+<span class="keyword">#define</span> WIFI_SSID <span class="string">"YourWiFi"</span>
+<span class="keyword">#define</span> WIFI_PASS <span class="string">"YourPassword"</span>
+<span class="keyword">#define</span> API_BASE <span class="string">"http://192.168.1.10/attendance/api"</span>
+<span class="keyword">#define</span> DEVICE_ID <span class="string">"esp32-01"</span>
+<span class="keyword">#define</span> DEVICE_SECRET <span class="string">"your-secret-key"</span>
+            </div>
+
+            <div class="success">
+                <strong>✅ Setup Berhasil!</strong> Sistem siap digunakan setelah mengikuti langkah-langkah di atas.
+            </div>
+        </div>
+
+        <div class="section" id="hardware">
+            <h2>4. 🔧 Hardware & Wiring</h2>
+            
+            <h3>4.1 Komponen yang Dibutuhkan</h3>
+            <table class="table">
+                <tr>
+                    <th>Komponen</th>
+                    <th>Jumlah</th>
+                    <th>Fungsi</th>
+                </tr>
+                <tr>
+                    <td>ESP32 DevKit v1</td>
+                    <td>1</td>
+                    <td>Microcontroller utama</td>
+                </tr>
+                <tr>
+                    <td>RC522 RFID Reader</td>
+                    <td>1</td>
+                    <td>Pembaca kartu RFID</td>
+                </tr>
+                <tr>
+                    <td>Modul microSD</td>
+                    <td>1</td>
+                    <td>Penyimpanan offline</td>
+                </tr>
+                <tr>
+                    <td>Kartu/Tag Mifare</td>
+                    <td>10+</td>
+                    <td>Kartu kehadiran</td>
+                </tr>
+                <tr>
+                    <td>LED & Buzzer</td>
+                    <td>1 set</td>
+                    <td>Indikator status</td>
+                </tr>
+            </table>
+
+            <h3>4.2 Wiring Diagram</h3>
+            <div class="code-block">
+<span class="comment">RC522 → ESP32</span>
+SDA   → GPIO5
+SCK   → GPIO18
+MOSI  → GPIO23
+MISO  → GPIO19
+RST   → GPIO27
+3.3V  → 3V3
+GND   → GND
+
+<span class="comment">microSD → ESP32</span>
+CS      → GPIO4
+SCK     → GPIO18 (shared)
+MOSI    → GPIO23 (shared)
+MISO    → GPIO19 (shared)
+VCC     → 3V3
+GND     → GND
+
+<span class="comment">LED & Buzzer</span>
+LED Hijau  → GPIO25 (dengan resistor)
+LED Merah  → GPIO26
+Buzzer     → GPIO15
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ Peringatan:</strong> Pastikan menggunakan supply 3.3V untuk RC522, bukan 5V!
+            </div>
+        </div>
+
+        <div class="section" id="software">
+            <h2>5. 💻 Software Configuration</h2>
+            
+            <h3>5.1 Konfigurasi Database</h3>
+            <div class="code-block">
+<span class="comment">// web/config.php</span>
+<span class="keyword">'DB_HOST'</span> => <span class="string">'127.0.0.1'</span>,
+<span class="keyword">'DB_NAME'</span> => <span class="string">'attendance'</span>,
+<span class="keyword">'DB_USER'</span> => <span class="string">'root'</span>,
+<span class="keyword">'DB_PASS'</span> => <span class="string">''</span>,
+<span class="keyword">'APP_TZ'</span> => <span class="string">'Asia/Jakarta'</span>,
+<span class="keyword">'SCHOOL_NAME'</span> => <span class="string">'SMA Bustanul Arifin'</span>,
+<span class="keyword">'ADMIN_USER'</span> => <span class="string">'admin'</span>,
+<span class="keyword">'ADMIN_PASS'</span> => <span class="string">'admin'</span>,
+<span class="keyword">'LATE_THRESHOLD'</span> => <span class="number">15</span>, <span class="comment">// menit</span>
+<span class="keyword">'SCHOOL_START'</span> => <span class="string">'07:30'</span>,
+            </div>
+
+            <h3>5.2 Konfigurasi ESP32</h3>
+            <div class="code-block">
+<span class="comment">// firmware/attendance_esp32/config.h</span>
+<span class="keyword">#define</span> WIFI_SSID <span class="string">"YourWiFi"</span>
+<span class="keyword">#define</span> WIFI_PASS <span class="string">"YourPassword"</span>
+<span class="keyword">#define</span> API_BASE <span class="string">"http://192.168.1.10/attendance/api"</span>
+<span class="keyword">#define</span> DEVICE_ID <span class="string">"esp32-01"</span>
+<span class="keyword">#define</span> DEVICE_SECRET <span class="string">"your-secret-key"</span>
+<span class="keyword">#define</span> LATE_THRESHOLD <span class="number">15</span> <span class="comment">// menit</span>
+            </div>
+        </div>
+
+        <div class="section" id="usage">
+            <h2>6. 📱 Cara Penggunaan</h2>
+            
+            <h3>6.1 Login Sistem</h3>
+            <div class="highlight">
+                <strong>URL:</strong> http://localhost/attendance/login.php<br>
+                <strong>Admin:</strong> admin / admin
+            </div>
+
+            <h3>6.2 Dashboard Admin</h3>
+            <ul>
+                <li><strong>Dashboard</strong> - Statistik lengkap sistem</li>
+                <li><strong>Manajemen Pengguna</strong> - Kelola semua pengguna</li>
+                <li><strong>Laporan</strong> - Laporan dengan grafik interaktif</li>
+                <li><strong>Backup & Restore</strong> - Kelola backup database</li>
+                <li><strong>Pengaturan</strong> - Konfigurasi sistem</li>
+            </ul>
+
+            <h3>6.3 Manajemen Pengguna</h3>
+            <ol>
+                <li>Klik menu "Manajemen Pengguna"</li>
+                <li>Klik "Tambah Pengguna" untuk membuat akun baru</li>
+                <li>Isi data pengguna (nama, email, role, kelas)</li>
+                <li>Klik "Tambah Pengguna" untuk menyimpan</li>
+                <li>Gunakan fitur pencarian untuk mencari pengguna</li>
+            </ol>
+
+            <h3>6.4 Sistem Laporan</h3>
+            <ol>
+                <li>Klik menu "Laporan"</li>
+                <li>Pilih jenis laporan (Bulanan/Tahunan/Harian)</li>
+                <li>Pilih format export (HTML/PDF/CSV)</li>
+                <li>Klik "Generate Laporan"</li>
+                <li>Download file laporan yang dihasilkan</li>
+            </ol>
+        </div>
+
+        <div class="section" id="database">
+            <h2>7. 🗄️ Struktur Database</h2>
+            
+            <h3>7.1 Tabel Utama</h3>
+            <table class="table">
+                <tr>
+                    <th>Tabel</th>
+                    <th>Fungsi</th>
+                    <th>Record</th>
+                </tr>
+                <tr>
+                    <td>users</td>
+                    <td>Data pengguna dengan role-based access</td>
+                    <td>202</td>
+                </tr>
+                <tr>
+                    <td>attendance</td>
+                    <td>Data kehadiran RFID</td>
+                    <td>15,691</td>
+                </tr>
+                <tr>
+                    <td>devices</td>
+                    <td>Data perangkat ESP32</td>
+                    <td>2</td>
+                </tr>
+                <tr>
+                    <td>settings</td>
+                    <td>Konfigurasi sistem</td>
+                    <td>1</td>
+                </tr>
+            </table>
+
+            <h3>7.2 Tabel Advanced</h3>
+            <table class="table">
+                <tr>
+                    <th>Tabel</th>
+                    <th>Fungsi</th>
+                </tr>
+                <tr>
+                    <td>remember_tokens</td>
+                    <td>Token remember me</td>
+                </tr>
+                <tr>
+                    <td>audit_logs</td>
+                    <td>Log audit sistem</td>
+                </tr>
+                <tr>
+                    <td>notifications</td>
+                    <td>Sistem notifikasi</td>
+                </tr>
+                <tr>
+                    <td>email_queue</td>
+                    <td>Antrian email</td>
+                </tr>
+                <tr>
+                    <td>backup_logs</td>
+                    <td>Log backup</td>
+                </tr>
+                <tr>
+                    <td>system_settings</td>
+                    <td>Pengaturan sistem</td>
+                </tr>
+                <tr>
+                    <td>attendance_rules</td>
+                    <td>Aturan kehadiran</td>
+                </tr>
+                <tr>
+                    <td>holiday_calendar</td>
+                    <td>Kalender libur</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section" id="api">
+            <h2>8. 🔌 API Documentation</h2>
+            
+            <h3>8.1 Endpoint Utama</h3>
+            <table class="table">
+                <tr>
+                    <th>Endpoint</th>
+                    <th>Method</th>
+                    <th>Fungsi</th>
+                </tr>
+                <tr>
+                    <td>/api/ingest.php</td>
+                    <td>POST</td>
+                    <td>Menerima data kehadiran dari ESP32</td>
+                </tr>
+                <tr>
+                    <td>/api/mark_notification_read.php</td>
+                    <td>POST</td>
+                    <td>Menandai notifikasi sebagai dibaca</td>
+                </tr>
+                <tr>
+                    <td>/api/get_notification_count.php</td>
+                    <td>GET</td>
+                    <td>Mendapatkan jumlah notifikasi</td>
+                </tr>
+                <tr>
+                    <td>/api/set_event.php</td>
+                    <td>POST</td>
+                    <td>Mengatur event kehadiran manual</td>
+                </tr>
+            </table>
+
+            <h3>8.2 Contoh Request</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/ingest.php</span>
+{
+  <span class="string">"device_id"</span>: <span class="string">"esp32-01"</span>,
+  <span class="string">"nonce"</span>: <span class="string">"abc123"</span>,
+  <span class="string">"ts"</span>: <span class="string">"1717400000"</span>,
+  <span class="string">"events"</span>: [{
+    <span class="string">"uid"</span>: <span class="string">"04a1b2c3d4"</span>,
+    <span class="string">"ts"</span>: <span class="string">"2025-05-01T08:00:00+07:00"</span>
+  }],
+  <span class="string">"hmac"</span>: <span class="string">"&lt;hmac_hex&gt;"</span>
+}
+            </div>
+        </div>
+
+        <div class="section" id="troubleshooting">
+            <h2>9. 🛠️ Troubleshooting</h2>
+            
+            <h3>9.1 Masalah Umum</h3>
+            <table class="table">
+                <tr>
+                    <th>Masalah</th>
+                    <th>Penyebab</th>
+                    <th>Solusi</th>
+                </tr>
+                <tr>
+                    <td>Database tidak terhubung</td>
+                    <td>MySQL tidak berjalan</td>
+                    <td>Start Laragon/MySQL</td>
+                </tr>
+                <tr>
+                    <td>Login tidak berfungsi</td>
+                    <td>Kredensial salah</td>
+                    <td>Cek admin / admin</td>
+                </tr>
+                <tr>
+                    <td>RFID tidak terdeteksi</td>
+                    <td>Wiring salah</td>
+                    <td>Cek koneksi RC522</td>
+                </tr>
+                <tr>
+                    <td>Notifikasi tidak muncul</td>
+                    <td>JavaScript disabled</td>
+                    <td>Aktifkan JavaScript</td>
+                </tr>
+            </table>
+
+            <h3>9.2 Log & Debug</h3>
+            <ul>
+                <li><strong>Audit Logs</strong> - Cek tabel `audit_logs`</li>
+                <li><strong>Error Logs</strong> - Cek `storage/logs/`</li>
+                <li><strong>Database Logs</strong> - Cek MySQL error log</li>
+                <li><strong>Test Scripts</strong> - Jalankan `test_final_system_check.php`</li>
+            </ul>
+        </div>
+
+        <div class="section" id="maintenance">
+            <h2>10. 🔧 Maintenance & Backup</h2>
+            
+            <h3>10.1 Backup Rutin</h3>
+            <ol>
+                <li>Klik menu "Backup & Restore"</li>
+                <li>Klik "Backup Database Lengkap"</li>
+                <li>Tunggu proses backup selesai</li>
+                <li>Download file backup yang dihasilkan</li>
+            </ol>
+
+            <h3>10.2 Maintenance Database</h3>
+            <div class="code-block">
+<span class="comment"># Optimize database</span>
+OPTIMIZE TABLE users, attendance, devices;
+
+<span class="comment"># Clean old logs</span>
+DELETE FROM audit_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL 90 DAY);
+DELETE FROM notifications WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
+            </div>
+
+            <h3>10.3 Monitoring Sistem</h3>
+            <ul>
+                <li>Monitor penggunaan disk space</li>
+                <li>Cek log error secara berkala</li>
+                <li>Backup database secara rutin</li>
+                <li>Update sistem jika ada versi baru</li>
+            </ul>
+        </div>
+
+        <div class="section" id="security">
+            <h2>11. 🔒 Security & Best Practices</h2>
+            
+            <h3>11.1 Keamanan Sistem</h3>
+            <ul>
+                <li>Gunakan password yang kuat untuk admin</li>
+                <li>Aktifkan rate limiting untuk login</li>
+                <li>Backup data secara rutin</li>
+                <li>Update sistem secara berkala</li>
+                <li>Monitor log audit secara rutin</li>
+            </ul>
+
+            <h3>11.2 Best Practices</h3>
+            <ul>
+                <li>Jangan share kredensial admin</li>
+                <li>Gunakan HTTPS untuk production</li>
+                <li>Backup sebelum update</li>
+                <li>Test di environment development dulu</li>
+                <li>Dokumentasikan perubahan konfigurasi</li>
+            </ul>
+        </div>
+
+        <div class="section" id="support">
+            <h2>12. 📞 Support & Contact</h2>
+            
+            <h3>12.1 Informasi Kontak</h3>
+            <ul>
+                <li><strong>Email:</strong> ppba.1965@gmail.com</li>
+                <li><strong>GitHub:</strong> <a href="https://github.com/Anamsyahrul/attendance">@Anamsyahrul/attendance</a></li>
+                <li><strong>Documentation:</strong> <a href="https://github.com/Anamsyahrul/attendance/wiki">Wiki</a></li>
+            </ul>
+
+            <h3>12.2 Laporan Bug</h3>
+            <ol>
+                <li>Buka GitHub Issues</li>
+                <li>Jelaskan masalah yang terjadi</li>
+                <li>Sertakan log error jika ada</li>
+                <li>Jelaskan langkah reproduksi</li>
+                <li>Mention environment yang digunakan</li>
+            </ol>
+
+            <h3>12.3 Feature Request</h3>
+            <ol>
+                <li>Buka GitHub Issues</li>
+                <li>Label sebagai "enhancement"</li>
+                <li>Jelaskan fitur yang diinginkan</li>
+                <li>Berikan use case yang jelas</li>
+                <li>Diskusikan dengan developer</li>
+            </ol>
+        </div>
+
+        <div class="footer">
+            <p><strong>🎉 Sistem Kehadiran RFID Enterprise - Sempurna untuk Sekolah Modern! 🎉</strong></p>
+            <p>Dokumen ini dibuat secara otomatis pada: <span id="currentDate"></span></p>
+            <p>Versi: 2.0.0 | © 2025 Anam Syahrul</p>
+        </div>
+    </div>
+
+    <script>
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Smooth scrolling for TOC links
+        document.querySelectorAll('.toc a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Print functionality
+        function printDocument() {
+            window.print();
+        }
+
+        // Add print button
+        const printButton = document.createElement('button');
+        printButton.innerHTML = '🖨️ Print PDF';
+        printButton.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        `;
+        printButton.onclick = printDocument;
+        document.body.appendChild(printButton);
+    </script>
+</body>
+</html>
