@@ -10,6 +10,9 @@ RewriteEngine On
 # CSV export endpoint proxy: /api/attendance.csv -> public/index.php?export=1
 RewriteRule ^api/attendance\.csv$ public/index.php?export=1 [QSA,L]
 
+# Allow access to API files
+RewriteRule ^api/(.*)$ api/$1 [QSA,L]
+
 # Let real files/folders pass
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d

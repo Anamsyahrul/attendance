@@ -8,7 +8,7 @@ header('Cache-Control: no-cache, must-revalidate');
 header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
 
 // Path ke file panduan HTML
-$htmlFile = __DIR__ . '/../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html';
+$htmlFile = __DIR__ . '/../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html';
 
 // Cek apakah file HTML ada
 if (!file_exists($htmlFile)) {
@@ -27,7 +27,7 @@ if ($wkhtmltopdf) {
     passthru($command);
 } else {
     // Jika wkhtmltopdf tidak tersedia, redirect ke file HTML
-    header('Location: ../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html');
+    header('Location: ../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html');
     exit;
 }
 ?>
