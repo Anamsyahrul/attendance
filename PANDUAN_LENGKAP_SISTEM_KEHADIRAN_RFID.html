@@ -200,6 +200,7 @@
         <div class="toc">
             <h2>📋 Daftar Isi</h2>
             <ul>
+                <li><a href="#beginner">0. Panduan Pemula (MULAI DARI SINI!)</a></li>
                 <li><a href="#overview">1. Overview Sistem</a></li>
                 <li><a href="#features">2. Fitur Utama</a></li>
                 <li><a href="#installation">3. Instalasi & Setup</a></li>
@@ -213,6 +214,322 @@
                 <li><a href="#security">11. Security & Best Practices</a></li>
                 <li><a href="#support">12. Support & Contact</a></li>
             </ul>
+        </div>
+
+        <div class="section" id="beginner">
+            <h2>0. 🚀 Panduan Pemula (MULAI DARI SINI!)</h2>
+
+            <div class="warning">
+                <strong>🎯 BACA DULU SEBELUM MEMULAI!</strong><br>
+                Jika Anda baru pertama kali menggunakan sistem ini, ikuti panduan langkah demi langkah di bawah ini. Panduan ini dibuat khusus untuk pemula yang belum pernah menginstall sistem RFID sebelumnya.
+            </div>
+
+            <h3>📋 Daftar Periksa Sebelum Mulai</h3>
+            <div class="highlight">
+                <strong>✅ Yang Perlu Anda Siapkan:</strong>
+                <ul>
+                    <li>Komputer dengan Windows 10/11</li>
+                    <li>ESP32 DevKit v1 (bukan ESP32-S2 atau yang lain)</li>
+                    <li>Modul RFID RC522</li>
+                    <li>Kartu RFID/Mifare (minimal 1 buah untuk testing)</li>
+                    <li>Kabel jumper male-to-male (minimal 10 buah)</li>
+                    <li>Breadboard</li>
+                    <li>Power supply 5V untuk ESP32</li>
+                    <li>Arduino IDE atau PlatformIO (untuk upload firmware)</li>
+                </ul>
+            </div>
+
+            <h3>🔢 Langkah 1: Install Laragon (Server)</h3>
+            <div class="success">
+                <strong>🎯 Tujuan:</strong> Menjalankan server web dan database MySQL di komputer Anda
+            </div>
+
+            <ol>
+                <li><strong>Download Laragon:</strong>
+                    <ul>
+                        <li>Buka browser dan kunjungi: <code>https://laragon.org/download/</code></li>
+                        <li>Download versi Full (bukan Portable)</li>
+                        <li>Install Laragon di folder default (C:\laragon)</li>
+                    </ul>
+                </li>
+
+                <li><strong>Jalankan Laragon:</strong>
+                    <ul>
+                        <li>Buka aplikasi Laragon</li>
+                        <li>Klik tombol "Start All" (ikon play hijau)</li>
+                        <li>Tunggu hingga Apache dan MySQL berjalan (ikon hijau)</li>
+                    </ul>
+                </li>
+
+                <li><strong>Test Server:</strong>
+                    <ul>
+                        <li>Buka browser: <code>http://localhost</code></li>
+                        <li>Anda akan melihat halaman welcome Laragon</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h3>🔢 Langkah 2: Download & Setup Project</h3>
+            <div class="success">
+                <strong>🎯 Tujuan:</strong> Mendapatkan semua file sistem kehadiran
+            </div>
+
+            <ol>
+                <li><strong>Clone Repository:</strong>
+                    <div class="code-block">
+# Buka Command Prompt atau Terminal
+cd C:\laragon\www
+git clone https://github.com/Anamsyahrul/attendance.git
+cd attendance
+                    </div>
+                </li>
+
+                <li><strong>Import Database:</strong>
+                    <div class="code-block">
+# Di Laragon, klik kanan → MySQL → Terminal
+mysql -u root -p
+# Password kosong, tekan Enter
+
+# Di dalam MySQL:
+CREATE DATABASE attendance;
+exit;
+
+# Import schema
+mysql -u root attendance < web\sql\schema.sql
+mysql -u root attendance < web\sql\essential_tables.sql
+                    </div>
+                </li>
+
+                <li><strong>Test Web App:</strong>
+                    <ul>
+                        <li>Buka browser: <code>http://localhost/attendance/login.php</code></li>
+                        <li>Login dengan: <strong>admin / admin</strong></li>
+                        <li>Anda akan masuk ke dashboard admin</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h3>🔢 Langkah 3: Persiapan Hardware (ESP32 + RFID)</h3>
+            <div class="success">
+                <strong>🎯 Tujuan:</strong> Merakit perangkat RFID yang akan membaca kartu kehadiran
+            </div>
+
+            <h4>3.1. Komponen yang Dibutuhkan:</h4>
+            <table class="table">
+                <tr>
+                    <th>Komponen</th>
+                    <th>Jumlah</th>
+                    <th>Catatan</th>
+                </tr>
+                <tr>
+                    <td>ESP32 DevKit v1</td>
+                    <td>1</td>
+                    <td>Pastikan yang ada WiFi dan Bluetooth</td>
+                </tr>
+                <tr>
+                    <td>RC522 RFID Module</td>
+                    <td>1</td>
+                    <td>Modul pembaca kartu RFID</td>
+                </tr>
+                <tr>
+                    <td>Kartu RFID/Mifare</td>
+                    <td>1-5</td>
+                    <td>Untuk testing kehadiran</td>
+                </tr>
+                <tr>
+                    <td>Kabel Jumper</td>
+                    <td>10+</td>
+                    <td>Male-to-male</td>
+                </tr>
+                <tr>
+                    <td>Breadboard</td>
+                    <td>1</td>
+                    <td>Untuk prototyping</td>
+                </tr>
+                <tr>
+                    <td>Power Supply 5V</td>
+                    <td>1</td>
+                    <td>Minimal 1A output</td>
+                </tr>
+            </table>
+
+            <h4>3.2. Panduan Wiring (Sambung Kabel):</h4>
+            <div class="warning">
+                <strong>⚠️ PENTING:</strong> Matikan semua power sebelum mulai wiring! Pastikan semua komponen tidak tersambung ke listrik.
+            </div>
+
+            <div class="success">
+                <strong>✅ Langkah Wiring:</strong>
+                <ol>
+                    <li><strong>Siapkan Komponen:</strong>
+                        <ul>
+                            <li>ESP32 DevKit v1</li>
+                            <li>Modul RC522 RFID</li>
+                            <li>Breadboard</li>
+                            <li>Kabel jumper (warna berbeda untuk mudah ingat)</li>
+                        </ul>
+                    </li>
+
+                    <li><strong>Sambungkan RC522 ke ESP32:</strong>
+                        <div class="code-block">
+<span class="comment">// RC522 → ESP32 (8 kabel wajib)</span>
+<span class="comment">// Gunakan warna kabel berbeda untuk setiap pin</span>
+
+RC522 SDA  → ESP32 GPIO5   (kabel orange)
+RC522 SCK  → ESP32 GPIO18  (kabel kuning)
+RC522 MOSI → ESP32 GPIO23  (kabel biru)
+RC522 MISO → ESP32 GPIO19  (kabel hijau)
+RC522 RST  → ESP32 GPIO27  (kabel ungu)
+RC522 3.3V → ESP32 3V3     (kabel merah)
+RC522 GND  → ESP32 GND     (kabel hitam)
+                        </div>
+                    </li>
+
+                    <li><strong>Sambungkan Power:</strong>
+                        <div class="code-block">
+<span class="comment">// Power Supply → ESP32</span>
+<span class="comment">// HATI-HATI: Salah sambung bisa rusak ESP32!</span>
+
+Power +5V → ESP32 VIN pin (bukan 3V3!)
+Power GND → ESP32 GND
+                        </div>
+                    </li>
+
+                    <li><strong>Periksa Koneksi:</strong>
+                        <ul>
+                            <li>Pastikan tidak ada kabel yang longgar</li>
+                            <li>Periksa polaritas (+ ke +, - ke -)</li>
+                            <li>RC522 MENDAPAT 3.3V, bukan 5V!</li>
+                            <li>VIN ESP32 mendapat 5V dari power supply</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+            <h3>🔢 Langkah 4: Upload Firmware ke ESP32</h3>
+            <div class="success">
+                <strong>🎯 Tujuan:</strong> Memprogram ESP32 agar bisa membaca RFID dan kirim data ke server
+            </div>
+
+            <ol>
+                <li><strong>Install Arduino IDE:</strong>
+                    <ul>
+                        <li>Download dari: <code>https://www.arduino.cc/en/software</code></li>
+                        <li>Install dengan opsi default</li>
+                    </ul>
+                </li>
+
+                <li><strong>Setup ESP32 di Arduino IDE:</strong>
+                    <ul>
+                        <li>Buka Arduino IDE</li>
+                        <li>File → Preferences → Additional Boards Manager URLs</li>
+                        <li>Tambahkan: <code>https://dl.espressif.com/dl/package_esp32_index.json</code></li>
+                        <li>Tools → Board → Boards Manager → Install "esp32"</li>
+                        <li>Tools → Board → ESP32 Dev Module</li>
+                    </ul>
+                </li>
+
+                <li><strong>Edit Konfigurasi WiFi:</strong>
+                    <div class="code-block">
+<span class="comment">// Buka file: firmware/attendance_esp32/config.h</span>
+<span class="comment">// Edit bagian WiFi:</span>
+
+#define WIFI_SSID "NamaWiFiAnda"
+#define WIFI_PASS "PasswordWiFiAnda"
+#define API_BASE "http://192.168.1.100/attendance/api"
+#define DEVICE_ID "esp32-01"
+#define DEVICE_SECRET "rahasiaunik"
+                    </div>
+                </li>
+
+                <li><strong>Upload Firmware:</strong>
+                    <ul>
+                        <li>Buka file: <code>firmware/attendance_esp32/attendance_esp32.ino</code></li>
+                        <li>Pilih port ESP32 (Tools → Port)</li>
+                        <li>Klik tombol Upload (panah kanan)</li>
+                        <li>Tunggu hingga "Done uploading"</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h3>🔢 Langkah 5: Testing Sistem</h3>
+            <div class="success">
+                <strong>🎯 Tujuan:</strong> Memastikan semua komponen bekerja dengan baik
+            </div>
+
+            <ol>
+                <li><strong>Test Web App:</strong>
+                    <ul>
+                        <li>Buka: <code>http://localhost/attendance/login.php</code></li>
+                        <li>Login: admin / admin</li>
+                        <li>Cek dashboard menampilkan data</li>
+                    </ul>
+                </li>
+
+                <li><strong>Test RFID Reader:</strong>
+                    <ul>
+                        <li>Buka Serial Monitor Arduino IDE</li>
+                        <li>Tekan reset di ESP32</li>
+                        <li>Lihat log koneksi WiFi</li>
+                        <li>Tempelkan kartu RFID ke RC522</li>
+                        <li>Lihat UID kartu di Serial Monitor</li>
+                    </ul>
+                </li>
+
+                <li><strong>Test Kehadiran:</strong>
+                    <ul>
+                        <li>Login ke web app sebagai admin</li>
+                        <li>Buat user test dengan UID kartu RFID</li>
+                        <li>Tempelkan kartu ke RC522</li>
+                        <li>Cek dashboard apakah kehadiran tercatat</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h3>🔢 Langkah 6: Troubleshooting Cepat</h3>
+            <div class="warning">
+                <strong>🚨 Jika Ada Masalah:</strong>
+            </div>
+
+            <table class="table">
+                <tr>
+                    <th>Masalah</th>
+                    <th>Solusi Cepat</th>
+                </tr>
+                <tr>
+                    <td>ESP32 tidak terdeteksi Arduino IDE</td>
+                    <td>Cek driver USB, restart Arduino IDE, ganti kabel USB</td>
+                </tr>
+                <tr>
+                    <td>WiFi tidak konek</td>
+                    <td>Cek SSID dan password di config.h, pastikan WiFi 2.4GHz</td>
+                </tr>
+                <tr>
+                    <td>RFID tidak terbaca</td>
+                    <td>Cek wiring RC522, pastikan 3.3V, coba kartu RFID lain</td>
+                </tr>
+                <tr>
+                    <td>Web app blank putih</td>
+                    <td>Cek Apache/MySQL running di Laragon, cek error log</td>
+                </tr>
+                <tr>
+                    <td>Database error</td>
+                    <td>Import ulang schema.sql, cek nama database "attendance"</td>
+                </tr>
+            </ol>
+
+            <div class="success">
+                <strong>🎉 SELAMAT!</strong> Jika semua langkah di atas berhasil, sistem kehadiran RFID Anda sudah siap digunakan. Untuk panduan lebih detail tentang fitur-fitur advanced, lanjutkan membaca bagian berikutnya.
+            </div>
+
+            <div class="highlight">
+                <strong>📞 Butuh Bantuan?</strong>
+                <ul>
+                    <li>Email: ppba.1965@gmail.com</li>
+                    <li>GitHub Issues: <a href="https://github.com/Anamsyahrul/attendance/issues">Buat Issue Baru</a></li>
+                    <li>Forum Diskusi: <a href="https://github.com/Anamsyahrul/attendance/discussions">GitHub Discussions</a></li>
+                </ul>
+            </div>
         </div>
 
         <div class="section" id="overview">
@@ -1009,19 +1326,66 @@ DELETE FROM notifications WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
             });
         });
 
-        // Print functionality
+        // PDF download functionality
+        function downloadPDF() {
+            // Check if we're running on localhost (web server)
+            if (window.location.protocol === 'file:') {
+                alert('⚠️ PDF Download hanya bisa digunakan melalui web server!\n\nSilakan akses file ini melalui:\nhttp://localhost/attendance/PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html');
+                return;
+            }
+
+            // Construct PDF URL based on current location
+            let pdfUrl;
+            if (window.location.href.includes('/attendance/')) {
+                // If accessed through /attendance/ path
+                pdfUrl = window.location.origin + '/attendance/web/api/install_guide.php';
+            } else {
+                // Fallback for other paths
+                pdfUrl = window.location.href.replace('PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html', 'web/api/install_guide.php');
+            }
+
+            // Create a temporary link to trigger download
+            const link = document.createElement('a');
+            link.href = pdfUrl;
+            link.target = '_blank';
+            link.download = 'Panduan_Lengkap_Sistem_Kehadiran_RFID.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Print functionality (fallback)
         function printDocument() {
             window.print();
         }
 
-        // Add print button
-        const printButton = document.createElement('button');
-        printButton.innerHTML = '🖨️ Print PDF';
-        printButton.style.cssText = `
+        // Add PDF download button
+        const pdfButton = document.createElement('button');
+        pdfButton.innerHTML = '📄 Unduh PDF';
+        pdfButton.style.cssText = `
             position: fixed;
             top: 20px;
             right: 20px;
-            background: #007bff;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+            font-weight: bold;
+        `;
+        pdfButton.onclick = downloadPDF;
+        document.body.appendChild(pdfButton);
+
+        // Add print button (secondary option)
+        const printButton = document.createElement('button');
+        printButton.innerHTML = '🖨️ Print';
+        printButton.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 140px;
+            background: #6c757d;
             color: white;
             border: none;
             padding: 10px 20px;

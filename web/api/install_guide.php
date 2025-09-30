@@ -19,15 +19,21 @@ if (!file_exists($htmlFile)) {
 
 // Cek apakah wkhtmltopdf tersedia
 $wkhtmltopdf = shell_exec('where wkhtmltopdf 2>nul');
-if ($wkhtmltopdf) {
+if ($wkhtmltopdf && trim($wkhtmltopdf) !== '') {
     // Gunakan wkhtmltopdf untuk konversi
     $command = 'wkhtmltopdf --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 15mm --margin-right 15mm --encoding UTF-8 "' . $htmlFile . '" -';
-    
+
     // Jalankan command dan output langsung ke browser
-    passthru($command);
+    $output = shell_exec($command);
+    if ($output === null) {
+        // Jika command gagal, redirect ke HTML
+        header('Location: /attendance/PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html');
+        exit;
+    }
+    echo $output;
 } else {
     // Jika wkhtmltopdf tidak tersedia, redirect ke file HTML
-    header('Location: ../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html');
+    header('Location: /attendance/PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html');
     exit;
 }
 ?>
