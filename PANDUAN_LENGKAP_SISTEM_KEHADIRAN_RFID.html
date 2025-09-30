@@ -909,34 +909,56 @@ GND → GND
 
             <h3>4.3 Diagram Wiring Lengkap</h3>
             <div class="code-block">
-<span class="comment">=== WIRING DIAGRAM LENGKAP ===</span>
-<span class="comment">// ESP32 DevKit v1 Pinout</span>
-<span class="comment">// (Lihat dokumentasi ESP32 untuk pinout lengkap)</span>
+<span class="comment">=== DIAGRAM PIN ESP32 DEVKIT V1 ===</span>
+<span class="comment">// Pastikan menggunakan ESP32 DevKit v1 (bukan S2/S3)</span>
 
-<span class="comment">RC522 → ESP32</span>
-SDA   → GPIO5   (D5)
-SCK   → GPIO18  (D18)
-MOSI  → GPIO23  (D23)
-MISO  → GPIO19  (D19)
-RST   → GPIO27  (D27)
-3.3V  → 3V3
-GND   → GND
+[ USB ]
+3V3   | o    o | EN
+GND   | o    o | 36 (VP)
+D23   | o    o | 39 (VN)
+D22   | o    o | 34
+D1    | o    o | 35
+D3    | o    o | 32
+D21   | o    o | 33
+D19   | o    o | 25
+D18   | o    o | 26
+D5    | o    o | 27
+D17   | o    o | 14
+D16   | o    o | 12
+D4    | o    o | 13
+D0    | o    o | GND
+D2    | o    o | 15
+D15   | o    o | 2
+3V3   | o    o | GND
+         [ BOOT ]
+
+<span class="comment">=== WIRING DIAGRAM LENGKAP ===</span>
+<span class="comment">// Koneksi komponen ke ESP32</span>
+
+<span class="comment">RC522 RFID → ESP32</span>
+SDA (Data)  → D5    (GPIO5)
+SCK (Clock) → D18   (GPIO18)
+MOSI        → D23   (GPIO23)
+MISO        → D19   (GPIO19)
+RST (Reset) → D27   (GPIO27)
+3.3V (VCC)  → 3V3
+GND         → GND
 
 <span class="comment">microSD → ESP32</span>
-CS    → GPIO4   (D4)
-SCK   → GPIO18  (D18) [shared]
-MOSI  → GPIO23  (D23) [shared]
-MISO  → GPIO19  (D19) [shared]
-VCC   → 3V3    [shared]
-GND   → GND    [shared]
+CS (Chip Select) → D4    (GPIO4)
+SCK (Clock)      → D18   (GPIO18) [shared]
+MOSI (Data In)   → D23   (GPIO23) [shared]
+MISO (Data Out)  → D19   (GPIO19) [shared]
+VCC (Power)      → 3V3   [shared]
+GND              → GND   [shared]
 
 <span class="comment">LED & Buzzer</span>
-LED Hijau  → GPIO25 (D25) + 220Ω → GND
-LED Merah  → GPIO26 (D26) + 220Ω → GND
-Buzzer     → GPIO15 (D15) → GND
+LED Hijau  → D25 (GPIO25) + 220Ω → GND
+LED Merah  → D26 (GPIO26) + 220Ω → GND
+Buzzer     → D15 (GPIO15) → GND
 
 <span class="comment">Power Supply</span>
-+5V → VIN
++5V → VIN pin (penting: bukan 3V3!)
 GND → GND
             </div>
 
