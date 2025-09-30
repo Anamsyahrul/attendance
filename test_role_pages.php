@@ -217,3 +217,4 @@ echo "3. Test dark/light mode toggle\n";
 echo "4. Test role-specific features\n";
 echo "\n";
 ?>
+

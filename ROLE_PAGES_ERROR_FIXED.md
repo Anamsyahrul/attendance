@@ -302,3 +302,4 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 **Status**: ✅ ERROR FIXED  
 **Issue**: PDO and Config Initialization in Role Pages  
 **Resolution**: Added PDO initialization and fixed session handling
+

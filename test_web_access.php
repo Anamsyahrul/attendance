@@ -152,3 +152,4 @@ echo "5. Check if there are any JavaScript errors\n";
 echo "6. Check if session is being destroyed\n";
 echo "\n";
 ?>
+

@@ -125,3 +125,4 @@ CREATE INDEX IF NOT EXISTS idx_users_active ON users(is_active);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_attendance_manual ON attendance(device_id, ts);
 CREATE INDEX IF NOT EXISTS idx_attendance_json ON attendance((CAST(raw_json AS CHAR(100) ARRAY)));
+

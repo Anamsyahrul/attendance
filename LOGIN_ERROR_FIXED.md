@@ -206,3 +206,4 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 **Status**: ✅ ERROR FIXED  
 **Issue**: PDO Initialization Error  
 **Resolution**: Added PDO initialization in login and admin pages
+

@@ -104,3 +104,4 @@ echo "- No more redirect to login when clicking 'Pengaturan'\n";
 echo "- Menu navigation should work correctly\n";
 echo "\n";
 ?>
+

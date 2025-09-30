@@ -180,3 +180,4 @@ echo "3. Test dark/light mode toggle\n";
 echo "4. Test role selection\n";
 echo "\n";
 ?>
+

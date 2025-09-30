@@ -176,3 +176,4 @@ INSERT IGNORE INTO holiday_calendar (holiday_name, holiday_date, holiday_type) V
 ('Hari Raya Idul Adha', '2024-06-16', 'religious'),
 ('Tahun Baru Islam', '2024-07-07', 'religious'),
 ('Hari Natal', '2024-12-25', 'religious');
+

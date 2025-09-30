@@ -149,3 +149,4 @@ echo "4. Check if file permissions are correct\n";
 echo "5. Check if there are any JavaScript redirects\n";
 echo "\n";
 ?>
+

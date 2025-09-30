@@ -120,3 +120,4 @@ echo "- No more redirect to login for logged in users\n";
 echo "- Menu navigation should work correctly\n";
 echo "\n";
 ?>
+
