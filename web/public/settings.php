@@ -276,12 +276,40 @@ if (isset($weeklyOffDays)) {
   <div class="card mb-4">
     <div class="card-header">Panduan Instalasi Lengkap</div>
     <div class="card-body">
-      <p class="mb-3">Ikuti panduan PDF berikut untuk pemasangan perangkat, konfigurasi firmware, hingga setting Laragon. Cocok untuk pemula karena dijelaskan langkah demi langkah.</p>
-      <div class="d-flex flex-wrap gap-2 align-items-center">
-        <a class="btn btn-outline-danger" href="<?= e($appBase) ?>/api/install_guide.php"><i class="bi bi-file-earmark-pdf me-1"></i>Unduh PDF Panduan</a>
-        <a class="btn btn-outline-primary" target="_blank" href="<?= e($appBase) ?>/PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html"><i class="bi bi-file-earmark-text me-1"></i>Lihat HTML</a>
-        <span class="text-muted small">Tip: simpan PDF ini sebagai acuan dan bagikan ke operator piket.</span>
+      <p class="mb-3">Pilih panduan yang sesuai dengan tingkat pengalaman Anda:</p>
+
+      <div class="alert alert-info">
+        <strong>🆕 Panduan Pemula:</strong> Jika Anda baru pertama kali menggunakan sistem ini, mulai dari sini!
       </div>
+
+      <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+        <a class="btn btn-success" target="_blank" href="<?= e($appBase) ?>/PANDUAN_INSTALASI_PEMULA.md"><i class="bi bi-star me-1"></i>Panduan Pemula (Rekomendasi)</a>
+        <a class="btn btn-outline-danger" href="<?= e($appBase) ?>/api/install_guide.php"><i class="bi bi-file-earmark-pdf me-1"></i>Unduh PDF Lengkap</a>
+        <a class="btn btn-outline-primary" target="_blank" href="<?= e($appBase) ?>/PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html"><i class="bi bi-file-earmark-text me-1"></i>Lihat HTML Lengkap</a>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <h6>📖 Panduan Pemula</h6>
+          <ul class="small">
+            <li>Langkah sederhana untuk pemula</li>
+            <li>Checklist yang mudah diikuti</li>
+            <li>Troubleshooting dasar</li>
+            <li>Cocok untuk instalasi pertama kali</li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <h6>📋 Panduan Lengkap</h6>
+          <ul class="small">
+            <li>Penjelasan detail semua fitur</li>
+            <li>Konfigurasi advanced</li>
+            <li>Troubleshooting mendalam</li>
+            <li>Untuk pengguna mahir</li>
+          </ul>
+        </div>
+      </div>
+
+      <span class="text-muted small">Tip: simpan panduan ini sebagai acuan dan bagikan ke operator piket.</span>
     </div>
   </div>
 
