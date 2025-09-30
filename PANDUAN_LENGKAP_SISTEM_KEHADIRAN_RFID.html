@@ -423,6 +423,23 @@ mysql -u root attendance < web\sql\essential_tables.sql
                                     <td>Ground</td>
                                 </tr>
                             </table>
+
+                            <div style="margin-top: 15px; padding: 10px; background: #e9ecef; border-radius: 5px;">
+                                <strong>📍 Cara Sambung di Breadboard:</strong>
+                                <ol style="margin-top: 10px;">
+                                    <li><strong>Letakkan ESP32:</strong> Masukkan ESP32 ke breadboard, pastikan pin-pinnya sejajar dengan lubang breadboard</li>
+                                    <li><strong>Letakkan RC522:</strong> Masukkan RC522 ke sisi lain breadboard (jarak minimal 2-3 lubang)</li>
+                                    <li><strong>Untuk setiap koneksi:</strong>
+                                        <ul>
+                                            <li>Cari pin di ESP32 (lihat diagram pin di atas)</li>
+                                            <li>Masukkan satu ujung kabel jumper ke pin ESP32</li>
+                                            <li>Masukkan ujung lain ke pin RC522 yang sesuai</li>
+                                            <li>Pastikan kabel tidak longgar dan warna sesuai tabel</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>Contoh koneksi SDA:</strong> Pin SDA di RC522 → Pin D5 di ESP32 (kabel orange)</li>
+                                </ol>
+                            </div>
                         </div>
                     </li>
 
