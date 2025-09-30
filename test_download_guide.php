@@ -103,3 +103,4 @@ echo "================================\n";
 echo "Access: http://localhost/attendance/web/public/settings.php\n";
 echo "Click 'Unduh PDF Panduan' or 'Lihat HTML'\n";
 ?>
+

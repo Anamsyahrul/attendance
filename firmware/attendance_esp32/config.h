@@ -5,15 +5,15 @@
 // =====================
 
 // WiFi
-#define WIFI_SSID "YOUR_SSID"
-#define WIFI_PASS "YOUR_PASSWORD"
+#define WIFI_SSID "SIMBAH"
+#define WIFI_PASS "mberohjah"
 
 // Device identity (must match row in web/sql/seed.sql or your DB)
-#define DEVICE_ID     "esp32-01"
-#define DEVICE_SECRET "changeme_device_secret"
+#define DEVICE_ID     "DEVICE-01"
+#define DEVICE_SECRET "anamganteng123"
 
 // API base (no trailing slash), example: http://192.168.1.10/attendance/api
-#define API_BASE "http://192.168.1.10/attendance/api"
+#define API_BASE "http://192.168.0.106/attendance/web/api"
 
 // Debug logging to Serial
 #define DEBUG 1

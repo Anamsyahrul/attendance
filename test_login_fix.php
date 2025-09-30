@@ -166,3 +166,4 @@ echo "🚀 LOGIN FIX COMPLETED!\n";
 echo "======================\n";
 echo "Login should now work without 'details' column error\n";
 ?>
+

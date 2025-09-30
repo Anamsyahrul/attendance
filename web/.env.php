@@ -1,25 +1,35 @@
 <?php
-return array (
+// Copy this file to .env.php and adjust values accordingly.
+return [
   'DB_HOST' => '127.0.0.1',
   'DB_NAME' => 'attendance',
   'DB_USER' => 'root',
   'DB_PASS' => '',
-  'APP_TZ' => 'Asia/Jakarta',
+  'APP_TZ'  => 'Asia/Jakarta',
+  'DEVICE_SECRET' => '',
+  // If true, unknown UID will create a new user with name "Unknown <UID>"
   'AUTO_CREATE_UNKNOWN' => false,
+  // School mode settings
   'SCHOOL_MODE' => true,
+  // Jam mulai sekolah (HH:MM, 24h). Scan pertama setelah waktu ini dianggap "Terlambat".
   'SCHOOL_START' => '07:15',
+  // Jam selesai/pulang sekolah (HH:MM, 24h). Scan terakhir sebelum waktu ini dianggap "Pulang Awal" (heuristik jika keluar wajib scan).
   'SCHOOL_END' => '15:00',
-  'SCHOOL_NAME' => 'SMA Peradaban Bumiayu',
-  'SCHOOL_LOGO' => 'assets/logo/current_logo.png',
-  'SCHOOL_ADDRESS' => 'Jl. Raya Pagojengan Km.3 Paguyangan Kec. Paguyangan Kab.Brebes 52276.',
-  'SCHOOL_PHONE' => '087794801169',
-  'SCHOOL_EMAIL' => 'pmb@peradaban.ac.id',
-  'SCHOOL_WEBSITE' => 'https://pmb.peradaban.ac.id/',
-  'SCHOOL_MOTTO' => 'Anjay, Anjay, Mantap',
-  'REQUIRE_CHECKOUT' => false,
-  'SCHOOL_SKIP_WEEKENDS' => true,
+  // Identitas sekolah (opsional, untuk navbar)
+  'SCHOOL_NAME' => 'Sekolah Contoh',
+  // URL logo sekolah (opsional). Kosongkan jika tidak ada.
+  'SCHOOL_LOGO' => '',
+  'SCHOOL_ADDRESS' => '',
+  'SCHOOL_PHONE' => '',
+  'SCHOOL_EMAIL' => '',
+  'SCHOOL_WEBSITE' => '',
+  'SCHOOL_MOTTO' => '',
+  // Kehadiran
+  'REQUIRE_CHECKOUT' => false, // jika true, setelah jam pulang tanpa scan pulang = Bolos
+  'SCHOOL_SKIP_WEEKENDS' => false, // jika true, Sabtu/Minggu diabaikan (tidak menandai bolos)
+  'WEEKLY_OFF_DAYS' => '6,7', // daftar hari libur mingguan (1=Senin ... 7=Minggu)
+  // Daftar tanggal libur (YYYY-MM-DD) dipisah koma, contoh: 2025-06-01,2025-06-17
   'HOLIDAYS' => '',
+  // Mode pendaftaran (aktifkan untuk mengizinkan scan kartu unknown dengan feedback sukses di perangkat)
   'REGISTRATION_MODE' => false,
-  'ADMIN_USER' => 'admin',
-  'WEEKLY_OFF_DAYS' => '6,7',
-);
+];

@@ -131,8 +131,41 @@ try {
         }
 
         if (!$userId) {
-            $errors[] = ['index' => $i, 'error' => 'User not found and auto-create disabled'];
-            continue;
+            // Izinkan penyimpanan log unknown saat mode pendaftaran aktif
+            $regMode = (bool) env('REGISTRATION_MODE', false);
+            if (!$regMode) {
+                // Cek runtime flag dari register.php heartbeat
+                try {
+                    $runtimePath = __DIR__ . '/../tmp/registration_mode.json';
+                    if (file_exists($runtimePath)) {
+                        $js = @json_decode(@file_get_contents($runtimePath), true);
+                        if (is_array($js)) {
+                            $until = (int)($js['until'] ?? 0);
+                            $regMode = $until > time();
+                        }
+                    }
+                } catch (Throwable $e) { /* ignore */ }
+            }
+
+            if ($regMode) {
+                // Simpan attendance dengan user_id NULL supaya muncul di register.php (unknown_uids)
+                $rawExtras = [
+                    'is_late' => false,
+                    'late_minutes' => 0,
+                    'is_holiday' => $isHoliday,
+                    'is_weekend' => $isWeekend,
+                    'user_name' => null,
+                    'user_room' => null,
+                ];
+                $rawJson = json_encode(array_merge($e, $rawExtras), JSON_UNESCAPED_SLASHES);
+                $insert->execute([null, $deviceId, $tsDb, $uidHex, $rawJson]);
+                $saved++;
+                // Jangan lanjut ke hitung terlambat; lompat ke iterasi berikutnya
+                continue;
+            } else {
+                $errors[] = ['index' => $i, 'error' => 'User not found and auto-create disabled'];
+                continue;
+            }
         }
 
         // Cek keterlambatan

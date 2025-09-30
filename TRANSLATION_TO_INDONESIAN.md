@@ -262,3 +262,4 @@ URL: http://localhost/attendance/login.php
 **Language**: 🇮🇩 Indonesian (Bahasa Indonesia)  
 **Files Translated**: 5/8 (62.5% Complete)
 
+

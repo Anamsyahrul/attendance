@@ -1,0 +1,36 @@
+[2025-09-30 15:38:37] wkhtmltopdf ditemukan di: wkhtmltopdf
+[2025-09-30 15:38:37] Menjalankan command: "wkhtmltopdf" --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 15mm --margin-right 15mm --encoding UTF-8 --disable-smart-shrinking --print-media-type --no-background --disable-javascript "C:\laragon\www\attendance\web\api/../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html" -
+[2025-09-30 15:38:37] wkhtmltopdf gagal dengan exit code 1. Error: '"wkhtmltopdf"' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2025-09-30 15:38:37] Melakukan fallback ke HTML
+[2025-09-30 15:50:39] wkhtmltopdf ditemukan di: wkhtmltopdf
+[2025-09-30 15:50:39] Menjalankan command: "wkhtmltopdf" --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 15mm --margin-right 15mm --encoding UTF-8 --disable-smart-shrinking --print-media-type --no-background --disable-javascript "C:\laragon\www\attendance\web\api/../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html" -
+[2025-09-30 15:50:39] wkhtmltopdf gagal dengan exit code 1. Error: '"wkhtmltopdf"' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2025-09-30 15:50:39] Melakukan fallback ke HTML
+[2025-09-30 16:00:46] wkhtmltopdf ditemukan di: wkhtmltopdf
+[2025-09-30 16:00:46] Menjalankan command: "wkhtmltopdf" --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 15mm --margin-right 15mm --encoding UTF-8 --disable-smart-shrinking --print-media-type --no-background --disable-javascript "C:\laragon\www\attendance\web\api/../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html" -
+[2025-09-30 16:00:46] wkhtmltopdf gagal dengan exit code 1. Error: '"wkhtmltopdf"' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2025-09-30 16:00:46] Melakukan fallback ke HTML
+[2025-09-30 17:32:22] wkhtmltopdf ditemukan di: wkhtmltopdf
+[2025-09-30 17:32:22] Menjalankan command: "wkhtmltopdf" --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 15mm --margin-right 15mm --encoding UTF-8 --disable-smart-shrinking --print-media-type --no-background --disable-javascript "C:\laragon\www\attendance\web\api/../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html" -
+[2025-09-30 17:32:22] wkhtmltopdf gagal dengan exit code 1. Error: '"wkhtmltopdf"' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2025-09-30 17:32:22] Melakukan fallback ke HTML
+[2025-09-30 22:23:47] wkhtmltopdf ditemukan di: wkhtmltopdf
+[2025-09-30 22:23:47] Menjalankan command: "wkhtmltopdf" --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 15mm --margin-right 15mm --encoding UTF-8 --disable-smart-shrinking --print-media-type --no-background --disable-javascript "C:\laragon\www\attendance\web\api/../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html" -
+[2025-09-30 22:23:47] wkhtmltopdf gagal dengan exit code 1. Error: '"wkhtmltopdf"' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2025-09-30 22:23:47] Melakukan fallback ke HTML
+[2025-09-30 22:27:14] wkhtmltopdf ditemukan di: wkhtmltopdf
+[2025-09-30 22:27:14] Menjalankan command: "wkhtmltopdf" --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 15mm --margin-right 15mm --encoding UTF-8 --disable-smart-shrinking --print-media-type --no-background --disable-javascript "C:\laragon\www\attendance\web\api/../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html" -
+[2025-09-30 22:27:14] wkhtmltopdf gagal dengan exit code 1. Error: '"wkhtmltopdf"' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2025-09-30 22:27:14] Melakukan fallback ke HTML

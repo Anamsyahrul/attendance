@@ -15,9 +15,10 @@ return array (
   'SCHOOL_WEBSITE' => '',
   'SCHOOL_MOTTO' => '',
   'REQUIRE_CHECKOUT' => false,
-  'SCHOOL_SKIP_WEEKENDS' => true,
+  'SCHOOL_SKIP_WEEKENDS' => false,
   'HOLIDAYS' => '',
+  'REGISTRATION_MODE' => true,
   'ADMIN_USER' => 'admin',
   'ADMIN_PASS' => 'admin',
-  'WEEKLY_OFF_DAYS' => '6,7',
+  'WEEKLY_OFF_DAYS' => '',
 );

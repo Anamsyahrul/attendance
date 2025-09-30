@@ -216,3 +216,4 @@ echo "Access URL: http://localhost/attendance/login.php\n";
 echo "Admin Login: admin / admin\n";
 echo "\n";
 ?>
+

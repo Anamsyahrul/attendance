@@ -187,3 +187,4 @@ wkhtmltopdf --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 
 Panduan PDF ini menyediakan dokumentasi lengkap untuk Sistem Kehadiran RFID Enterprise, mulai dari instalasi hingga troubleshooting. Dengan format yang mudah dibaca dan navigasi yang intuitif, panduan ini akan membantu pengguna memahami dan menggunakan sistem dengan optimal.
 
 **📚 Selamat menggunakan Sistem Kehadiran RFID Enterprise! 📚**
+

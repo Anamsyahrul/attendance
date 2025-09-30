@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -197,6 +197,38 @@
             <div class="version">Versi 2.0.0</div>
         </div>
 
+        <div class="section" id="quickstart">
+            <h2>🚀 Quickstart 10 Langkah (Paling Mudah untuk Pemula)</h2>
+            <ol>
+                <li>Install Laragon → Start All (Apache & MySQL hijau).</li>
+                <li>Salin folder project ke <code>C:\laragon\www\attendance</code> (atau clone Git).</li>
+                <li>Buat DB: buka MySQL Terminal → <code>CREATE DATABASE attendance;</code></li>
+                <li>Import skema: <code>web/sql/schema.sql</code> lalu <code>web/sql/essential_tables.sql</code>.</li>
+                <li>Buka <code>attendance/web/config.php</code> → pastikan DB_NAME=attendance, APP_TZ Asia/Jakarta.</li>
+                <li>Pastikan web bisa diakses dari HP: dari HP buka <code>http://&lt;IP_PC&gt;/attendance/web/api/device_config.php</code> → harus tampil JSON.</li>
+                <li>Firmware: edit <code>firmware/attendance_esp32/config.h</code>:
+                    <div class="code-block">
+<span class="keyword">#define</span> WIFI_SSID <span class="string">"NamaWiFiAnda"</span>
+<span class="keyword">#define</span> WIFI_PASS <span class="string">"PasswordWiFiAnda"</span>
+<span class="keyword">#define</span> API_BASE <span class="string">"http://&lt;IP_PC&gt;/attendance/web/api"</span>
+<span class="keyword">#define</span> DEVICE_ID <span class="string">"DEVICE-01"</span>
+<span class="keyword">#define</span> DEVICE_SECRET <span class="string">"secret-kuat"</span>
+                    </div>
+                </li>
+                <li>DB devices: samakan secret:
+                    <div class="code-block">
+INSERT INTO devices (id, device_secret, is_active)
+VALUES ('DEVICE-01', 'secret-kuat', 1)
+ON DUPLICATE KEY UPDATE device_secret=VALUES(device_secret), is_active=VALUES(is_active);
+                    </div>
+                </li>
+                <li>Upload firmware → tekan tombol EN/RESET pada ESP32 untuk reboot.</li>
+                <li>Daftar via scan (Opsi B, disarankan): buka <code>attendance/web/public/register.php</code> (biarkan terbuka) → scan kartu → pilih UID di daftar kanan → isi Nama/Kelas → Simpan.</li>
+                <li>Jika tes saat Sabtu/Minggu, di <code>attendance/web/config.php</code> set: <code>'ALLOW_WEEKEND_HOLIDAY_SCAN' =&gt; true</code>.</li>
+            </ol>
+            <div class="success"><strong>Checklist sukses:</strong> HP bisa buka <code>device_config.php</code>, Serial Monitor tidak menampilkan 401/404, halaman Register menampilkan UID Unknown saat scan.</div>
+        </div>
+
         <div class="toc">
             <h2>📋 Daftar Isi</h2>
             <ul>
@@ -236,6 +268,8 @@
                     <li>Breadboard</li>
                     <li>Power supply 5V untuk ESP32</li>
                     <li>Arduino IDE atau PlatformIO (untuk upload firmware)</li>
+                    <li>✅ OLED Display 0.96" I2C (untuk tampilan realtime)</li>
+                    <li>✅ RTC DS3231 Module (untuk sinkronisasi waktu akurat)</li>
                 </ul>
             </div>
 
@@ -351,6 +385,16 @@ mysql -u root attendance < web\sql\essential_tables.sql
                     <td>1</td>
                     <td>Minimal 1A output</td>
                 </tr>
+                <tr>
+                    <td>OLED Display 0.96" I2C</td>
+                    <td>1</td>
+                    <td>Menampilkan informasi kehadiran realtime</td>
+                </tr>
+                <tr>
+                    <td>RTC DS3231 Module</td>
+                    <td>1</td>
+                    <td>Modul jam real-time untuk sinkronisasi waktu akurat</td>
+                </tr>
             </table>
 
             <h4>3.2. Panduan Wiring (Sambung Kabel):</h4>
@@ -425,20 +469,29 @@ mysql -u root attendance < web\sql\essential_tables.sql
                             </table>
 
                             <div style="margin-top: 15px; padding: 10px; background: #e9ecef; border-radius: 5px;">
-                                <strong>📍 Cara Sambung di Breadboard:</strong>
-                                <ol style="margin-top: 10px;">
-                                    <li><strong>Letakkan ESP32:</strong> Masukkan ESP32 ke breadboard, pastikan pin-pinnya sejajar dengan lubang breadboard</li>
-                                    <li><strong>Letakkan RC522:</strong> Masukkan RC522 ke sisi lain breadboard (jarak minimal 2-3 lubang)</li>
-                                    <li><strong>Untuk setiap koneksi:</strong>
-                                        <ul>
-                                            <li>Cari pin di ESP32 (lihat diagram pin di atas)</li>
-                                            <li>Masukkan satu ujung kabel jumper ke pin ESP32</li>
-                                            <li>Masukkan ujung lain ke pin RC522 yang sesuai</li>
-                                            <li>Pastikan kabel tidak longgar dan warna sesuai tabel</li>
-                                        </ul>
-                                    </li>
-                                    <li><strong>Contoh koneksi SDA:</strong> Pin SDA di RC522 → Pin D5 di ESP32 (kabel orange)</li>
-                                </ol>
+                                <strong>📍 Panduan Sambung Breadboard:</strong>
+                                <table class="table" style="margin-top: 10px;">
+                                    <tr>
+                                        <th>Langkah</th>
+                                        <th>Cara Sambung</th>
+                                    </tr>
+                                    <tr>
+                                        <td>1. Letakkan ESP32</td>
+                                        <td>Masukkan ESP32 ke breadboard (pin sejajar lubang)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2. Letakkan RC522</td>
+                                        <td>Masukkan RC522 di sisi lain breadboard (jarak 2-3 lubang)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3. Sambungkan</td>
+                                        <td>Ikuti tabel di atas: ESP32 Pin → RC522 Pin (warna kabel)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4. Periksa</td>
+                                        <td>Pastikan semua kabel tidak longgar, warna sesuai</td>
+                                    </tr>
+                                </table>
                             </div>
                         </div>
                     </li>
@@ -462,6 +515,103 @@ mysql -u root attendance < web\sql\essential_tables.sql
                         </ul>
                     </li>
                 </ol>
+            </div>
+
+            <h4>3.3. Sambungkan OLED Display 0.96" I2C</h4>
+            <div class="success">
+                <strong>✅ Koneksi OLED Display (4 kabel):</strong>
+                <table class="table">
+                    <tr>
+                        <th>OLED Pin</th>
+                        <th>ESP32 Pin</th>
+                        <th>Kabel Warna</th>
+                        <th>Keterangan</th>
+                    </tr>
+                    <tr>
+                        <td>VCC</td>
+                        <td>3V3</td>
+                        <td>Merah</td>
+                        <td>Power 3.3V</td>
+                    </tr>
+                    <tr>
+                        <td>GND</td>
+                        <td>GND</td>
+                        <td>Hitam</td>
+                        <td>Ground</td>
+                    </tr>
+                    <tr>
+                        <td>SCL</td>
+                        <td>D22 (GPIO22)</td>
+                        <td>Kuning</td>
+                        <td>I2C Clock</td>
+                    </tr>
+                    <tr>
+                        <td>SDA</td>
+                        <td>D21 (GPIO21)</td>
+                        <td>Biru</td>
+                        <td>I2C Data</td>
+                    </tr>
+                </table>
+
+                <div style="margin-top: 15px; padding: 10px; background: #e9ecef; border-radius: 5px;">
+                    <strong>📍 Cara Sambung OLED:</strong>
+                    <ol>
+                        <li>Masukkan OLED ke breadboard</li>
+                        <li>Sambungkan VCC OLED ke 3V3 ESP32 (kabel merah)</li>
+                        <li>Sambungkan GND OLED ke GND ESP32 (kabel hitam)</li>
+                        <li>Sambungkan SCL ke GPIO22 (kabel kuning)</li>
+                        <li>Sambungkan SDA ke GPIO21 (kabel biru)</li>
+                    </ol>
+                </div>
+            </div>
+
+            <h4>3.4. Sambungkan RTC DS3231 Module</h4>
+            <div class="success">
+                <strong>✅ Koneksi RTC DS3231 (4 kabel):</strong>
+                <table class="table">
+                    <tr>
+                        <th>RTC Pin</th>
+                        <th>ESP32 Pin</th>
+                        <th>Kabel Warna</th>
+                        <th>Keterangan</th>
+                    </tr>
+                    <tr>
+                        <td>VCC</td>
+                        <td>3V3</td>
+                        <td>Merah</td>
+                        <td>Power 3.3V</td>
+                    </tr>
+                    <tr>
+                        <td>GND</td>
+                        <td>GND</td>
+                        <td>Hitam</td>
+                        <td>Ground</td>
+                    </tr>
+                    <tr>
+                        <td>SCL</td>
+                        <td>D22 (GPIO22)</td>
+                        <td>Kuning</td>
+                        <td>I2C Clock (shared dengan OLED)</td>
+                    </tr>
+                    <tr>
+                        <td>SDA</td>
+                        <td>D21 (GPIO21)</td>
+                        <td>Biru</td>
+                        <td>I2C Data (shared dengan OLED)</td>
+                    </tr>
+                </table>
+
+                <div style="margin-top: 15px; padding: 10px; background: #e9ecef; border-radius: 5px;">
+                    <strong>📍 Cara Sambung RTC:</strong>
+                    <ol>
+                        <li>Masukkan RTC DS3231 ke breadboard</li>
+                        <li>Sambungkan VCC RTC ke 3V3 ESP32 (kabel merah)</li>
+                        <li>Sambungkan GND RTC ke GND ESP32 (kabel hitam)</li>
+                        <li>Sambungkan SCL ke GPIO22 (kabel kuning - sama dengan OLED)</li>
+                        <li>Sambungkan SDA ke GPIO21 (kabel biru - sama dengan OLED)</li>
+                    </ol>
+                    <strong>⚠️ Catatan:</strong> OLED dan RTC menggunakan I2C bus yang sama (GPIO21/GPIO22), jadi tidak perlu kabel tambahan untuk SCL/SDA.
+                </div>
             </div>
 
             <h3>🔢 Langkah 4: Upload Firmware ke ESP32</h3>
@@ -540,6 +690,24 @@ mysql -u root attendance < web\sql\essential_tables.sql
                         <li>Buat user test dengan UID kartu RFID</li>
                         <li>Tempelkan kartu ke RC522</li>
                         <li>Cek dashboard apakah kehadiran tercatat</li>
+                    </ul>
+                </li>
+
+                <li><strong>Test OLED Display:</strong>
+                    <ul>
+                        <li>Setelah upload firmware, OLED akan menampilkan pesan "Sistem Ready"</li>
+                        <li>Saat kartu RFID ditempelkan, OLED akan menampilkan nama pengguna dan waktu</li>
+                        <li>Jika OLED tidak menampilkan apa-apa, cek koneksi I2C (GPIO21/GPIO22)</li>
+                        <li>Coba ganti alamat I2C jika OLED menggunakan alamat 0x3D bukan 0x3C</li>
+                    </ul>
+                </li>
+
+                <li><strong>Test RTC DS3231:</strong>
+                    <ul>
+                        <li>RTC akan otomatis disinkronkan dengan NTP saat ESP32 konek WiFi</li>
+                        <li>Cek Serial Monitor untuk log "RTC synced with NTP"</li>
+                        <li>Jika waktu tidak akurat, cek koneksi I2C dan pastikan RTC mendapat power</li>
+                        <li>RTC akan mempertahankan waktu meski ESP32 restart (backup battery)</li>
                     </ul>
                 </li>
             </ol>
@@ -750,15 +918,94 @@ mysql -u root attendance < web/sql/essential_tables.sql
 <span class="comment"># Login: admin / admin</span>
             </div>
 
-            <h3>3.3 Setup ESP32 Firmware</h3>
+            <h3>3.3 Install wkhtmltopdf (untuk Download PDF)</h3>
+            <div class="warning">
+                <strong>⚠️ WAJIB:</strong> Install wkhtmltopdf agar fitur download PDF panduan berfungsi dengan baik.
+            </div>
+
+            <ol>
+                <li><strong>Download wkhtmltopdf:</strong>
+                    <ul>
+                        <li>Buka browser dan kunjungi: <code>https://wkhtmltopdf.org/downloads.html</code></li>
+                        <li>Download versi Windows (64-bit atau 32-bit sesuai sistem Anda)</li>
+                        <li>Pilih file installer (.exe)</li>
+                    </ul>
+                </li>
+
+                <li><strong>Install wkhtmltopdf:</strong>
+                    <ul>
+                        <li>Jalankan file installer yang sudah didownload</li>
+                        <li>Install di folder default (C:\Program Files\wkhtmltopdf)</li>
+                        <li>Pastikan opsi "Add wkhtmltopdf to PATH" dicentang</li>
+                        <li>Klik Next → Install → Finish</li>
+                    </ul>
+                </li>
+
+                <li><strong>Test Instalasi:</strong>
+                    <div class="code-block">
+<span class="comment"># Buka Command Prompt dan ketik:</span>
+wkhtmltopdf --version
+
+<span class="comment"># Jika berhasil, akan muncul versi wkhtmltopdf</span>
+<span class="comment"># Contoh output: wkhtmltopdf 0.12.6</span>
+                    </div>
+                </li>
+
+                <li><strong>Troubleshooting:</strong>
+                    <ul>
+                        <li>Jika command tidak ditemukan, restart Command Prompt</li>
+                        <li>Jika masih error, tambahkan manual ke PATH environment variable</li>
+                        <li>Cek folder instalasi: C:\Program Files\wkhtmltopdf\bin</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h3>3.4 Setup ESP32 Firmware</h3>
             <div class="code-block">
 <span class="comment">// Edit config.h</span>
 <span class="keyword">#define</span> WIFI_SSID <span class="string">"YourWiFi"</span>
 <span class="keyword">#define</span> WIFI_PASS <span class="string">"YourPassword"</span>
-<span class="keyword">#define</span> API_BASE <span class="string">"http://192.168.1.10/attendance/api"</span>
+<span class="keyword">#define</span> API_BASE <span class="string">"http://192.168.1.10/attendance/web/api"</span>
 <span class="keyword">#define</span> DEVICE_ID <span class="string">"esp32-01"</span>
 <span class="keyword">#define</span> DEVICE_SECRET <span class="string">"your-secret-key"</span>
             </div>
+
+            <div class="highlight">
+                <strong>Contoh nyata (sering dipakai):</strong>
+                Jika IP PC Anda <code>192.168.0.106</code> maka:
+                <ul>
+                    <li><code>API_BASE</code> → <code>http://192.168.0.106/attendance/web/api</code></li>
+                    <li><code>DEVICE_ID</code> → <code>DEVICE-01</code> (harus sama dengan DB)</li>
+                    <li><code>DEVICE_SECRET</code> → mis. <code>anamganteng123</code> (harus sama dengan DB)</li>
+                </ul>
+            </div>
+
+            <h3>3.5 Konfigurasi Jaringan & API (Agar HP/ESP32 bisa akses)</h3>
+            <div class="highlight">
+                <strong>Checklist:</strong>
+                <ul>
+                    <li>HP, ESP32, dan PC berada pada Wi‑Fi/SSID yang sama (subnet sama, mis. 192.168.0.x)</li>
+                    <li>Uji dari HP: buka <code>http://&lt;IP_PC&gt;/attendance/web/api/device_config.php</code> → harus tampil JSON</li>
+                    <li>Set <code>API_BASE</code> sesuai URL yang bisa diakses HP/ESP32, umumnya: <code>http://&lt;IP_PC&gt;/attendance/web/api</code></li>
+                    <li>Windows Firewall: izinkan "Apache HTTP Server (httpd.exe)" untuk Private network atau buka port 80 (TCP)</li>
+                    <li>Apache listen di semua interface: <code>Listen 80</code> dan <code>&lt;VirtualHost *:80&gt;</code> dengan <code>Require all granted</code></li>
+                </ul>
+            </div>
+
+            <h3>3.6 Registrasi Perangkat (devices table)</h3>
+            <div class="code-block">
+<span class="comment">-- Samakan dengan config.h (DEVICE_ID dan DEVICE_SECRET)</span>
+INSERT INTO devices (id, device_secret, is_active)
+VALUES ('DEVICE-01', 'your-secret-key', 1)
+ON DUPLICATE KEY UPDATE device_secret = VALUES(device_secret), is_active = VALUES(is_active);
+            </div>
+
+            <h3>3.7 Aktifkan Mode Pendaftaran (opsi runtime)</h3>
+            <ul>
+                <li>Buka <code>attendance/web/public/register.php</code> → ini otomatis mengaktifkan <em>runtime registration</em>.</li>
+                <li>Atau aktifkan toggle "Mode Pendaftaran" di halaman Pengaturan agar selalu ON.</li>
+                <li>Atau buat file kosong <code>/register.mode</code> di microSD untuk memaksa reg mode di perangkat.</li>
+            </ul>
 
             <div class="success">
                 <strong>✅ Setup Berhasil!</strong> Sistem siap digunakan setelah mengikuti langkah-langkah di atas.
@@ -1089,10 +1336,32 @@ GND → GND
 <span class="comment">// firmware/attendance_esp32/config.h</span>
 <span class="keyword">#define</span> WIFI_SSID <span class="string">"YourWiFi"</span>
 <span class="keyword">#define</span> WIFI_PASS <span class="string">"YourPassword"</span>
-<span class="keyword">#define</span> API_BASE <span class="string">"http://192.168.1.10/attendance/api"</span>
+<span class="keyword">#define</span> API_BASE <span class="string">"http://192.168.1.10/attendance/web/api"</span>
 <span class="keyword">#define</span> DEVICE_ID <span class="string">"esp32-01"</span>
 <span class="keyword">#define</span> DEVICE_SECRET <span class="string">"your-secret-key"</span>
 <span class="keyword">#define</span> LATE_THRESHOLD <span class="number">15</span> <span class="comment">// menit</span>
+            </div>
+
+            <h3>5.3 Mode Pendaftaran & Alur Daftar via Scan (Opsi B)</h3>
+            <div class="highlight">
+                <strong>Tujuan:</strong> Saat Mode Pendaftaran aktif, scan kartu yang belum terdaftar tetap disimpan (user_id NULL) dan muncul di halaman <code>register.php</code> → daftar "UID Belum Terdaftar".
+            </div>
+            <div class="highlight">
+                <strong>Kenapa OLED menulis "Tidak terdaftar"?</strong>
+                Firmware mengecek lokal dari <code>/students.csv</code>. Itu wajar jika file tidak berisi UID Anda. Selama reg mode ON, server tetap menyimpan scan unknown (muncul di daftar kanan halaman Register). Setelah Anda simpan sebagai user, scan berikutnya akan tercatat sebagai user tersebut.
+            </div>
+            <ol>
+                <li>Buka <code>attendance/web/public/register.php</code> (tetap terbuka untuk mengaktifkan runtime registration)</li>
+                <li>Pastikan <code>device_config.php</code> menampilkan <code>"reg_mode": true</code> saat halaman register terbuka</li>
+                <li>Scan kartu di perangkat → daftar UID Unknown muncul di sisi kanan</li>
+                <li>Klik "Pakai UID" → isi Nama dan Kelas → Simpan (opsional centang backfill)</li>
+            </ol>
+            <div class="success">
+                <strong>Tips:</strong>
+                <ul>
+                    <li>Agar weekend/libur tidak memblokir saat pendaftaran, set di <code>web/config.php</code>: <code>'ALLOW_WEEKEND_HOLIDAY_SCAN' =&gt; true</code></li>
+                    <li>Jika ingin Mode Pendaftaran selalu ON tanpa membuka register, aktifkan toggle di halaman Pengaturan</li>
+                </ul>
             </div>
         </div>
 
@@ -1291,8 +1560,88 @@ GND → GND
                 <li><strong>Audit Logs</strong> - Cek tabel `audit_logs`</li>
                 <li><strong>Error Logs</strong> - Cek `storage/logs/`</li>
                 <li><strong>Database Logs</strong> - Cek MySQL error log</li>
+                <li><strong>PDF Generation Logs</strong> - Cek `web/storage/logs/pdf_generation.log`</li>
                 <li><strong>Test Scripts</strong> - Jalankan `test_final_system_check.php`</li>
             </ul>
+
+            <h3>9.3 Troubleshooting PDF Download</h3>
+            <div class="warning">
+                <strong>🚨 Jika PDF Download Tidak Berfungsi:</strong>
+            </div>
+
+            <ol>
+                <li><strong>Cek Instalasi wkhtmltopdf:</strong>
+                    <div class="code-block">
+<span class="comment"># Buka Command Prompt dan jalankan:</span>
+wkhtmltopdf --version
+
+<span class="comment"># Jika tidak ditemukan, install ulang wkhtmltopdf</span>
+<span class="comment"># Pastikan ditambahkan ke PATH environment variable</span>
+                    </div>
+                </li>
+
+                <li><strong>Cek Log PDF Generation:</strong>
+                    <div class="code-block">
+<span class="comment"># Buka file log untuk melihat error:</span>
+notepad attendance\web\storage\logs\pdf_generation.log
+
+<span class="comment"># Atau gunakan command:</span>
+type attendance\web\storage\logs\pdf_generation.log
+                    </div>
+                </li>
+
+                <li><strong>Test Manual wkhtmltopdf:</strong>
+                    <div class="code-block">
+<span class="comment"># Test konversi manual:</span>
+wkhtmltopdf --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 15mm --margin-right 15mm --encoding UTF-8 "attendance\PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html" test.pdf
+
+<span class="comment"># Jika berhasil, akan membuat file test.pdf</span>
+                    </div>
+                </li>
+
+                <li><strong>Common Issues & Solutions:</strong>
+                    <table class="table">
+                        <tr>
+                            <th>Masalah</th>
+                            <th>Gejala</th>
+                            <th>Solusi</th>
+                        </tr>
+                        <tr>
+                            <td>wkhtmltopdf tidak ditemukan</td>
+                            <td>Download redirect ke HTML</td>
+                            <td>Install wkhtmltopdf dan tambahkan ke PATH</td>
+                        </tr>
+                        <tr>
+                            <td>Permission denied</td>
+                            <td>Log menunjukkan permission error</td>
+                            <td>Jalankan command prompt sebagai administrator</td>
+                        </tr>
+                        <tr>
+                            <td>File HTML tidak ditemukan</td>
+                            <td>Log: "File HTML tidak ditemukan"</td>
+                            <td>Pastikan path file benar di install_guide.php</td>
+                        </tr>
+                        <tr>
+                            <td>wkhtmltopdf crash</td>
+                            <td>Log menunjukkan exit code error</td>
+                            <td>Cek versi wkhtmltopdf, coba update ke versi terbaru</td>
+                        </tr>
+                        <tr>
+                            <td>PDF kosong/corrupt</td>
+                            <td>File PDF tidak bisa dibuka</td>
+                            <td>Cek HTML file tidak corrupt, test manual conversion</td>
+                        </tr>
+                    </table>
+                </li>
+
+                <li><strong>Alternative Solutions:</strong>
+                    <ul>
+                        <li>Gunakan tombol "Print" untuk print ke PDF manual</li>
+                        <li>Save as PDF dari browser (Ctrl+P → Save as PDF)</li>
+                        <li>Gunakan online HTML to PDF converter</li>
+                    </ul>
+                </li>
+            </ol>
         </div>
 
         <div class="section" id="maintenance">
@@ -1478,3 +1827,4 @@ DELETE FROM notifications WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
     </script>
 </body>
 </html>
+

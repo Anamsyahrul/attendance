@@ -1,3 +1,8 @@
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+
+Options -Indexes
 Options -Indexes
 DirectoryIndex public/index.php
 

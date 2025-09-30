@@ -57,9 +57,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 unset($_SESSION['login_attempts'][$ip]);
                 unset($_SESSION['last_login_attempt'][$ip]);
                 
-                // Log login
-                $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, table_name, record_id, new_values, ip_address) VALUES (?, ?, ?, ?, ?, ?)");
-                $stmt->execute([1, 'login', 'users', 1, json_encode(['message' => 'Admin login successful']), $ip]);
+                // Log login (gunakan id admin jika ada, jika tidak NULL)
+                try {
+                    $adminId = null;
+                    $checkStmt = $pdo->prepare("SELECT id FROM users WHERE username = ? LIMIT 1");
+                    $checkStmt->execute(['admin']);
+                    $row = $checkStmt->fetch(PDO::FETCH_ASSOC);
+                    if ($row && isset($row['id'])) {
+                        $adminId = (int)$row['id'];
+                    }
+
+                    $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, table_name, record_id, new_values, ip_address) VALUES (?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$adminId, 'login', 'users', $adminId, json_encode(['message' => 'Admin login successful']), $ip]);
+                } catch (Throwable $e) {
+                    // Abaikan error logging agar login tetap berjalan
+                }
                 
                 header('Location: admin_simple.php');
                 exit;
@@ -96,8 +108,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 unset($_SESSION['last_login_attempt'][$ip]);
                 
                        // Log login
-                       $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, table_name, record_id, new_values, ip_address) VALUES (?, ?, ?, ?, ?, ?)");
-                       $stmt->execute([$user['id'], 'login', 'users', $user['id'], json_encode(['message' => 'User login successful']), $ip]);
+                       try {
+                           $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, table_name, record_id, new_values, ip_address) VALUES (?, ?, ?, ?, ?, ?)");
+                           $stmt->execute([$user['id'], 'login', 'users', $user['id'], json_encode(['message' => 'User login successful']), $ip]);
+                       } catch (Throwable $e) {
+                           // Abaikan error logging
+                       }
                 
                 // Update last login
                 $stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
@@ -126,9 +142,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['login_attempts'][$ip] = $loginAttempts + 1;
                 $_SESSION['last_login_attempt'][$ip] = time();
                 
-                       // Log failed login
-                       $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, table_name, record_id, new_values, ip_address) VALUES (?, ?, ?, ?, ?, ?)");
-                       $stmt->execute([0, 'login_failed', 'users', 0, json_encode(['message' => "Failed login attempt for username: $username, role: $role"]), $ip]);
+                       // Log failed login (user_id NULL agar tidak melanggar FK)
+                       try {
+                           $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, table_name, record_id, new_values, ip_address) VALUES (?, ?, ?, ?, ?, ?)");
+                           $stmt->execute([null, 'login_failed', 'users', null, json_encode(['message' => "Failed login attempt for username: $username, role: $role"]), $ip]);
+                       } catch (Throwable $e) {
+                           // Abaikan error logging
+                       }
                 
                 $error = 'Username, password, atau role tidak valid';
             }

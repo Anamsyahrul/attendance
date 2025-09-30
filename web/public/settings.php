@@ -23,6 +23,7 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') 
     $adminPass = (string)($_POST['ADMIN_PASS'] ?? '');
     $adminPassConfirm = (string)($_POST['ADMIN_PASS_CONFIRM'] ?? '');
     $weeklyOffInput = $_POST['WEEKLY_OFF'] ?? [];
+    $regMode = isset($_POST['REGISTRATION_MODE']);
 
     $weeklyOffDays = [];
     if (is_array($weeklyOffInput)) {
@@ -60,6 +61,7 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') 
             'ADMIN_USER'=>$adminUser,
             'WEEKLY_OFF_DAYS'=>$weeklyOffStr,
             'SCHOOL_SKIP_WEEKENDS'=> in_array(6, $weeklyOffDays, true) && in_array(7, $weeklyOffDays, true),
+            'REGISTRATION_MODE'=>$regMode,
         ];
         if ($adminPass !== '') {
             $payload['ADMIN_PASS'] = $adminPass;

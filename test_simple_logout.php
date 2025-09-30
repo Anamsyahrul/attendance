@@ -69,3 +69,4 @@ echo "🚀 LOGOUT SHOULD WORK NOW!\n";
 echo "==========================\n";
 echo "The 'logout_user()' error should be fixed\n";
 ?>
+

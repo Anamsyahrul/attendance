@@ -133,3 +133,4 @@ echo "🚀 LOGOUT FIX COMPLETED!\n";
 echo "========================\n";
 echo "Logout should now work without 'logout_user()' error\n";
 ?>
+

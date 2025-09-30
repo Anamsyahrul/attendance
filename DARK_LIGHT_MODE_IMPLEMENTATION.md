@@ -269,3 +269,4 @@ themeToggle.addEventListener('click', function() {
 **Status**: ✅ DARK/LIGHT MODE IMPLEMENTED  
 **Features**: Theme Toggle, Smooth Transitions, Responsive Design
 
+
