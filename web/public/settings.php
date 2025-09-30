@@ -278,7 +278,8 @@ if (isset($weeklyOffDays)) {
     <div class="card-body">
       <p class="mb-3">Ikuti panduan PDF berikut untuk pemasangan perangkat, konfigurasi firmware, hingga setting Laragon. Cocok untuk pemula karena dijelaskan langkah demi langkah.</p>
       <div class="d-flex flex-wrap gap-2 align-items-center">
-        <a class="btn btn-outline-danger" target="_blank" href="<?= e($appBase) ?>/api/install_guide.php"><i class="bi bi-file-earmark-pdf me-1"></i>Unduh PDF Panduan</a>
+        <a class="btn btn-outline-danger" href="<?= e($appBase) ?>/api/install_guide.php"><i class="bi bi-file-earmark-pdf me-1"></i>Unduh PDF Panduan</a>
+        <a class="btn btn-outline-primary" target="_blank" href="<?= e($appBase) ?>/PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html"><i class="bi bi-file-earmark-text me-1"></i>Lihat HTML</a>
         <span class="text-muted small">Tip: simpan PDF ini sebagai acuan dan bagikan ke operator piket.</span>
       </div>
     </div>
