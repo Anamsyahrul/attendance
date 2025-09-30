@@ -392,7 +392,7 @@ mysql -u root attendance < web/sql/essential_tables.sql
 
         <div class="section" id="hardware">
             <h2>4. 🔧 Hardware & Wiring</h2>
-            
+
             <h3>4.1 Komponen yang Dibutuhkan</h3>
             <table class="table">
                 <tr>
@@ -425,36 +425,248 @@ mysql -u root attendance < web/sql/essential_tables.sql
                     <td>1 set</td>
                     <td>Indikator status</td>
                 </tr>
+                <tr>
+                    <td>Breadboard</td>
+                    <td>1</td>
+                    <td>Untuk prototyping</td>
+                </tr>
+                <tr>
+                    <td>Kabel jumper</td>
+                    <td>20+</td>
+                    <td>Koneksi antar komponen</td>
+                </tr>
+                <tr>
+                    <td>Resistor 220Ω</td>
+                    <td>2</td>
+                    <td>Untuk LED</td>
+                </tr>
+                <tr>
+                    <td>Power Supply 5V</td>
+                    <td>1</td>
+                    <td>Sumber daya</td>
+                </tr>
             </table>
 
-            <h3>4.2 Wiring Diagram</h3>
+            <h3>4.2 Panduan Perakitan Kabel untuk Pemula</h3>
+
+            <div class="highlight">
+                <strong>🛠️ Tips untuk Pemula:</strong>
+                <ul>
+                    <li>Selalu matikan power sebelum merakit kabel</li>
+                    <li>Periksa kembali koneksi sebelum menyalakan</li>
+                    <li>Gunakan breadboard untuk prototyping</li>
+                    <li>Label setiap kabel dengan warna berbeda</li>
+                    <li>Gunakan multimeter untuk memeriksa koneksi</li>
+                </ul>
+            </div>
+
+            <h4>Langkah 1: Persiapan Komponen</h4>
+            <ol>
+                <li><strong>Siapkan ESP32:</strong> Pastikan ESP32 dalam kondisi baik, tidak ada kerusakan pin</li>
+                <li><strong>Siapkan RC522:</strong> Modul RFID RC522 dengan antena</li>
+                <li><strong>Siapkan microSD:</strong> Modul microSD card adapter</li>
+                <li><strong>Siapkan LED:</strong> 1 LED hijau dan 1 LED merah (3mm)</li>
+                <li><strong>Siapkan Buzzer:</strong> Buzzer aktif 5V</li>
+                <li><strong>Siapkan Kabel:</strong> Kabel jumper male-to-male dan male-to-female</li>
+            </ol>
+
+            <h4>Langkah 2: Sambungkan RC522 ke ESP32</h4>
             <div class="code-block">
+<span class="comment">// Koneksi RC522 → ESP32 (8 kabel)</span>
+<span class="comment">// Pastikan urutan pin benar!</span>
+
+<span class="comment">RC522 Pin → ESP32 Pin → Kabel Warna</span>
+SDA (Data)  → GPIO5     → <span style="color:orange">Orange</span>
+SCK (Clock) → GPIO18    → <span style="color:yellow">Yellow</span>
+MOSI        → GPIO23    → <span style="color:blue">Blue</span>
+MISO        → GPIO19    → <span style="color:green">Green</span>
+RST (Reset) → GPIO27    → <span style="color:purple">Purple</span>
+3.3V (VCC)  → 3V3       → <span style="color:red">Red</span>
+GND         → GND       → <span style="color:black">Black</span>
+IRQ         → (tidak digunakan) → <span style="color:gray">Gray</span>
+            </div>
+
+            <div class="success">
+                <strong>✅ Cara Sambung:</strong>
+                <ol>
+                    <li>Masukkan ESP32 ke breadboard</li>
+                    <li>Masukkan RC522 ke breadboard (pastikan jarak cukup)</li>
+                    <li>Sambungkan GND RC522 ke GND ESP32 (kabel hitam)</li>
+                    <li>Sambungkan 3.3V RC522 ke 3V3 ESP32 (kabel merah)</li>
+                    <li>Sambungkan SDA ke GPIO5 (kabel orange)</li>
+                    <li>Sambungkan SCK ke GPIO18 (kabel kuning)</li>
+                    <li>Sambungkan MOSI ke GPIO23 (kabel biru)</li>
+                    <li>Sambungkan MISO ke GPIO19 (kabel hijau)</li>
+                    <li>Sambungkan RST ke GPIO27 (kabel ungu)</li>
+                </ol>
+            </div>
+
+            <h4>Langkah 3: Sambungkan Modul microSD</h4>
+            <div class="code-block">
+<span class="comment">// Koneksi microSD → ESP32 (6 kabel)</span>
+<span class="comment">// SPI pins shared dengan RC522</span>
+
+<span class="comment">microSD Pin → ESP32 Pin → Kabel Warna</span>
+CS (Chip Select) → GPIO4     → <span style="color:cyan">Cyan</span>
+SCK (Clock)      → GPIO18    → <span style="color:yellow">Yellow (shared)</span>
+MOSI (Data In)   → GPIO23    → <span style="color:blue">Blue (shared)</span>
+MISO (Data Out)  → GPIO19    → <span style="color:green">Green (shared)</span>
+VCC (Power)      → 3V3       → <span style="color:red">Red (shared)</span>
+GND              → GND       → <span style="color:black">Black (shared)</span>
+            </div>
+
+            <div class="success">
+                <strong>✅ Cara Sambung:</strong>
+                <ol>
+                    <li>Masukkan modul microSD ke breadboard</li>
+                    <li>Sambungkan GND microSD ke GND ESP32 (kabel hitam)</li>
+                    <li>Sambungkan VCC microSD ke 3V3 ESP32 (kabel merah)</li>
+                    <li>Sambungkan CS ke GPIO4 (kabel cyan)</li>
+                    <li>SCK, MOSI, MISO sudah tersambung dari RC522</li>
+                </ol>
+            </div>
+
+            <h4>Langkah 4: Sambungkan LED dan Buzzer</h4>
+            <div class="code-block">
+<span class="comment">// Koneksi LED & Buzzer → ESP32</span>
+
+<span class="comment">Komponen → ESP32 Pin → Kabel Warna → Resistor</span>
+LED Hijau   → GPIO25    → <span style="color:lime">Lime</span>    → 220Ω ke GND
+LED Merah   → GPIO26    → <span style="color:pink">Pink</span>    → 220Ω ke GND
+Buzzer      → GPIO15    → <span style="color:brown">Brown</span>  → Tidak perlu
+            </div>
+
+            <div class="success">
+                <strong>✅ Cara Sambung LED:</strong>
+                <ol>
+                    <li>Sambungkan kaki panjang LED (anoda) ke GPIO pin</li>
+                    <li>Sambungkan resistor 220Ω ke kaki pendek LED (katoda)</li>
+                    <li>Sambungkan resistor ke GND ESP32</li>
+                    <li>LED Hijau: GPIO25 → resistor → GND</li>
+                    <li>LED Merah: GPIO26 → resistor → GND</li>
+                </ol>
+            </div>
+
+            <div class="success">
+                <strong>✅ Cara Sambung Buzzer:</strong>
+                <ol>
+                    <li>Sambungkan pin positif buzzer ke GPIO15</li>
+                    <li>Sambungkan pin negatif buzzer ke GND</li>
+                    <li>Pastikan buzzer aktif (bunyi sendiri saat diberi tegangan)</li>
+                </ol>
+            </div>
+
+            <h4>Langkah 5: Sambungkan Power Supply</h4>
+            <div class="code-block">
+<span class="comment">// Power Supply → ESP32</span>
+<span class="comment">// Gunakan power supply 5V dengan output stabil</span>
+
+<span class="comment">Power Supply → ESP32</span>
++5V → VIN pin (jangan 3V3!)
+GND → GND
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ Penting:</strong>
+                <ul>
+                    <li>VIN pin ESP32 menerima 5V input</li>
+                    <li>RC522 HARUS menggunakan 3.3V, bukan 5V!</li>
+                    <li>Jangan balik polaritas (+ ke -)</li>
+                    <li>Gunakan power supply yang stabil (minimal 1A)</li>
+                </ul>
+            </div>
+
+            <h4>Langkah 6: Testing Koneksi</h4>
+            <div class="highlight">
+                <strong>🧪 Cara Test:</strong>
+                <ol>
+                    <li>Upload firmware kosong ke ESP32</li>
+                    <li>Periksa LED power ESP32 menyala</li>
+                    <li>Test LED hijau: upload kode blink GPIO25</li>
+                    <li>Test LED merah: upload kode blink GPIO26</li>
+                    <li>Test buzzer: upload kode tone GPIO15</li>
+                    <li>Test RC522: upload kode RFID scanner</li>
+                    <li>Test microSD: upload kode write/read file</li>
+                </ol>
+            </div>
+
+            <h3>4.3 Diagram Wiring Lengkap</h3>
+            <div class="code-block">
+<span class="comment">=== WIRING DIAGRAM LENGKAP ===</span>
+<span class="comment">// ESP32 DevKit v1 Pinout</span>
+<span class="comment">// (Lihat dokumentasi ESP32 untuk pinout lengkap)</span>
+
 <span class="comment">RC522 → ESP32</span>
-SDA   → GPIO5
-SCK   → GPIO18
-MOSI  → GPIO23
-MISO  → GPIO19
-RST   → GPIO27
+SDA   → GPIO5   (D5)
+SCK   → GPIO18  (D18)
+MOSI  → GPIO23  (D23)
+MISO  → GPIO19  (D19)
+RST   → GPIO27  (D27)
 3.3V  → 3V3
 GND   → GND
 
 <span class="comment">microSD → ESP32</span>
-CS      → GPIO4
-SCK     → GPIO18 (shared)
-MOSI    → GPIO23 (shared)
-MISO    → GPIO19 (shared)
-VCC     → 3V3
-GND     → GND
+CS    → GPIO4   (D4)
+SCK   → GPIO18  (D18) [shared]
+MOSI  → GPIO23  (D23) [shared]
+MISO  → GPIO19  (D19) [shared]
+VCC   → 3V3    [shared]
+GND   → GND    [shared]
 
 <span class="comment">LED & Buzzer</span>
-LED Hijau  → GPIO25 (dengan resistor)
-LED Merah  → GPIO26
-Buzzer     → GPIO15
+LED Hijau  → GPIO25 (D25) + 220Ω → GND
+LED Merah  → GPIO26 (D26) + 220Ω → GND
+Buzzer     → GPIO15 (D15) → GND
+
+<span class="comment">Power Supply</span>
++5V → VIN
+GND → GND
             </div>
 
             <div class="warning">
-                <strong>⚠️ Peringatan:</strong> Pastikan menggunakan supply 3.3V untuk RC522, bukan 5V!
+                <strong>⚠️ Peringatan Penting:</strong>
+                <ul>
+                    <li>Pastikan menggunakan supply 3.3V untuk RC522, bukan 5V!</li>
+                    <li>Jangan sambungkan 5V langsung ke pin ESP32 kecuali VIN</li>
+                    <li>Periksa ulang semua koneksi sebelum menyalakan</li>
+                    <li>Gunakan resistor untuk LED untuk mencegah kerusakan</li>
+                    <li>Pastikan polaritas buzzer benar (+ ke GPIO, - ke GND)</li>
+                </ul>
             </div>
+
+            <h3>4.4 Troubleshooting Wiring</h3>
+            <table class="table">
+                <tr>
+                    <th>Masalah</th>
+                    <th>Gejala</th>
+                    <th>Solusi</th>
+                </tr>
+                <tr>
+                    <td>ESP32 tidak menyala</td>
+                    <td>Tidak ada LED power</td>
+                    <td>Cek koneksi power supply ke VIN/GND</td>
+                </tr>
+                <tr>
+                    <td>RC522 tidak terdeteksi</td>
+                    <td>Serial monitor error</td>
+                    <td>Cek koneksi SPI (SCK,MOSI,MISO) dan SDA</td>
+                </tr>
+                <tr>
+                    <td>LED tidak menyala</td>
+                    <td>LED mati saat blink</td>
+                    <td>Cek resistor 220Ω dan polaritas LED</td>
+                </tr>
+                <tr>
+                    <td>Buzzer tidak bunyi</td>
+                    <td>Tidak ada suara</td>
+                    <td>Cek polaritas buzzer dan GPIO pin</td>
+                </tr>
+                <tr>
+                    <td>microSD tidak terdeteksi</td>
+                    <td>Write/read gagal</td>
+                    <td>Cek koneksi CS pin dan kartu microSD</td>
+                </tr>
+            </table>
         </div>
 
         <div class="section" id="software">
