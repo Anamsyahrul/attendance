@@ -240,10 +240,17 @@ class NotificationManager {
     private function logAudit($userId, $action, $details) {
         try {
             $stmt = $this->pdo->prepare("
-                INSERT INTO audit_logs (user_id, action, details, ip_address, created_at) 
-                VALUES (?, ?, ?, ?, NOW())
+                INSERT INTO audit_logs (user_id, action, table_name, record_id, new_values, ip_address, created_at) 
+                VALUES (?, ?, ?, ?, ?, ?, NOW())
             ");
-            $stmt->execute([$userId, $action, $details, $_SERVER['REMOTE_ADDR'] ?? 'unknown']);
+            $stmt->execute([
+                $userId, 
+                $action, 
+                'notifications', 
+                0, 
+                json_encode(['message' => $details]), 
+                $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+            ]);
         } catch (Exception $e) {
             error_log("Error logging audit: " . $e->getMessage());
         }

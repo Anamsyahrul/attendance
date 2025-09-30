@@ -169,17 +169,19 @@ try {
         $insert->execute([$userId, $deviceId, $tsDb, $uidHex, $rawJson]);
         $saved++;
 
-        // Log ke audit
-        $stmt = $pdo->prepare("
-            INSERT INTO audit_logs (user_id, action, details, ip_address, created_at) 
-            VALUES (?, ?, ?, ?, NOW())
-        ");
-        $stmt->execute([
-            $userId, 
-            'attendance_scan', 
-            "RFID scan - " . ($isLate ? "Terlambat {$lateMinutes} menit" : "Tepat waktu"), 
-            $_SERVER['REMOTE_ADDR'] ?? 'unknown'
-        ]);
+               // Log ke audit
+               $stmt = $pdo->prepare("
+                   INSERT INTO audit_logs (user_id, action, table_name, record_id, new_values, ip_address, created_at) 
+                   VALUES (?, ?, ?, ?, ?, ?, NOW())
+               ");
+               $stmt->execute([
+                   $userId, 
+                   'attendance_scan', 
+                   'attendance',
+                   $userId,
+                   json_encode(['message' => "RFID scan - " . ($isLate ? "Terlambat {$lateMinutes} menit" : "Tepat waktu")]), 
+                   $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+               ]);
 
         // Update last login
         $stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
