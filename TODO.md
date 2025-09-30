@@ -1,0 +1,2 @@
+- [x] Add testing steps for OLED Display 0.96" I2C ✅
+- [x] Add testing steps for RTC DS3231 Module ✅
