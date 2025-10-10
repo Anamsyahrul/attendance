@@ -141,9 +141,9 @@ if ($view === 'recap') {
     $lateAt = DateTime::createFromFormat('Y-m-d H:i', $start->format('Y-m-d') . ' ' . $schoolStart, $tz);
     $endAt  = DateTime::createFromFormat('Y-m-d H:i', $start->format('Y-m-d') . ' ' . $schoolEnd, $tz);
     if ($room !== '') {
-        $sql = 'SELECT u.id, u.name, u.uid_hex, u.room,
-                       (SELECT MIN(a.ts) FROM attendance a WHERE a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ? AND a.device_id = \'manual\' AND (JSON_EXTRACT(a.raw_json, \'$.type\') = \'checkin\' OR JSON_EXTRACT(a.raw_json, \'$.type\') = \'override\')) AS first_ts,
-                       (SELECT MAX(a.ts) FROM attendance a WHERE a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ? AND a.device_id = \'manual\' AND (JSON_EXTRACT(a.raw_json, \'$.type\') = \'checkout\' OR JSON_EXTRACT(a.raw_json, \'$.status\') = \'bolos\')) AS last_ts
+    $sql = 'SELECT u.id, u.name, u.uid_hex, u.room,
+                       (SELECT MIN(a.ts) FROM attendance a WHERE a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ? AND (a.device_id = \'manual\' AND (JSON_EXTRACT(a.raw_json, \'$.type\') = \'checkin\' OR JSON_EXTRACT(a.raw_json, \'$.type\') = \'override\') OR a.device_id != \'manual\')) AS first_ts,
+                       (SELECT MAX(a.ts) FROM attendance a WHERE a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ? AND (a.device_id = \'manual\' AND (JSON_EXTRACT(a.raw_json, \'$.type\') = \'checkout\' OR JSON_EXTRACT(a.raw_json, \'$.status\') = \'bolos\')) OR a.device_id != \'manual\') AS last_ts
                 FROM users u
                 WHERE u.room = ?
                 ORDER BY u.name';
@@ -151,8 +151,8 @@ if ($view === 'recap') {
         $st->execute([$start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s'), $start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s'), $room]);
     } else {
         $sql = 'SELECT u.id, u.name, u.uid_hex, u.room,
-                       (SELECT MIN(a.ts) FROM attendance a WHERE a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ? AND a.device_id = \'manual\' AND (JSON_EXTRACT(a.raw_json, \'$.type\') = \'checkin\' OR JSON_EXTRACT(a.raw_json, \'$.type\') = \'override\')) AS first_ts,
-                       (SELECT MAX(a.ts) FROM attendance a WHERE a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ? AND a.device_id = \'manual\' AND (JSON_EXTRACT(a.raw_json, \'$.type\') = \'checkout\' OR JSON_EXTRACT(a.raw_json, \'$.status\') = \'bolos\')) AS last_ts
+                       (SELECT MIN(a.ts) FROM attendance a WHERE a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ? AND ((a.device_id = \'manual\' AND (JSON_EXTRACT(a.raw_json, \'$.type\') = \'checkin\' OR JSON_EXTRACT(a.raw_json, \'$.type\') = \'override\')) OR a.device_id != \'manual\')) AS first_ts,
+                       (SELECT MAX(a.ts) FROM attendance a WHERE a.uid_hex = u.uid_hex AND a.ts >= ? AND a.ts < ? AND ((a.device_id = \'manual\' AND (JSON_EXTRACT(a.raw_json, \'$.type\') = \'checkout\' OR JSON_EXTRACT(a.raw_json, \'$.status\') = \'bolos\')) OR a.device_id != \'manual\')) AS last_ts
                 FROM users u
                 ORDER BY u.room, u.name';
         $st = $pdo->prepare($sql);
@@ -233,20 +233,20 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
     <a class="navbar-brand d-flex align-items-center gap-2" href="./index.php">
       <span><?= e($school) ?></span>
     </a>
-    
+
     <!-- Mobile toggle button -->
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    
+
     <!-- Collapsible navbar content -->
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <?php $userRole = $_SESSION['role'] ?? 'admin'; ?>
-        
+
         <!-- Dashboard - Available for all roles -->
         <li class="nav-item"><a class="nav-link" data-nav="dashboard" href="./index.php"><i class="bi bi-speedometer2 me-1"></i><span class="btn-text">Dashboard</span></a></li>
-        
+
         <?php if ($userRole === 'admin'): ?>
         <!-- Admin-only menu items -->
         <li class="nav-item"><a class="nav-link" data-nav="register" href="./register.php"><i class="bi bi-person-plus me-1"></i><span class="btn-text">Daftar Kartu</span></a></li>
@@ -254,25 +254,25 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
         <li class="nav-item"><a class="nav-link" data-nav="rooms" href="./rooms.php"><i class="bi bi-building me-1"></i><span class="btn-text">Kelas</span></a></li>
         <li class="nav-item"><a class="nav-link" data-nav="settings" href="./settings.php"><i class="bi bi-gear me-1"></i><span class="btn-text">Pengaturan</span></a></li>
         <?php endif; ?>
-        
+
         <?php if ($userRole === 'teacher'): ?>
         <!-- Teacher-only menu items -->
         <li class="nav-item"><a class="nav-link" data-nav="students" href="./teacher.php"><i class="bi bi-people me-1"></i><span class="btn-text">Siswa Saya</span></a></li>
         <li class="nav-item"><a class="nav-link" data-nav="attendance" href="./teacher.php"><i class="bi bi-calendar-check me-1"></i><span class="btn-text">Kehadiran</span></a></li>
         <?php endif; ?>
-        
+
         <?php if ($userRole === 'parent'): ?>
         <!-- Parent-only menu items -->
         <li class="nav-item"><a class="nav-link" data-nav="child" href="./parent.php"><i class="bi bi-person-heart me-1"></i><span class="btn-text">Anak Saya</span></a></li>
         <li class="nav-item"><a class="nav-link" data-nav="attendance" href="./parent.php"><i class="bi bi-calendar-check me-1"></i><span class="btn-text">Kehadiran</span></a></li>
         <?php endif; ?>
-        
+
         <?php if ($userRole === 'student'): ?>
         <!-- Student-only menu items -->
         <li class="nav-item"><a class="nav-link" data-nav="attendance" href="./student.php"><i class="bi bi-calendar-check me-1"></i><span class="btn-text">Kehadiran Saya</span></a></li>
         <li class="nav-item"><a class="nav-link" data-nav="profile" href="./student.php"><i class="bi bi-person me-1"></i><span class="btn-text">Profil</span></a></li>
         <?php endif; ?>
-        
+
         <!-- Notifikasi Bell -->
         <li class="nav-item dropdown me-2">
           <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
@@ -327,19 +327,19 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
             <li><a class="dropdown-item" href="./admin_simple.php"><i class="bi bi-shield-check me-2"></i>Panel Admin</a></li>
             <li><a class="dropdown-item" href="./reports.php"><i class="bi bi-graph-up me-2"></i>Laporan</a></li>
             <?php endif; ?>
-            
+
             <?php if ($userRole === 'teacher'): ?>
             <li><a class="dropdown-item" href="./teacher.php"><i class="bi bi-person-check me-2"></i>Dashboard Guru</a></li>
             <?php endif; ?>
-            
+
             <?php if ($userRole === 'parent'): ?>
             <li><a class="dropdown-item" href="./parent.php"><i class="bi bi-person-heart me-2"></i>Dashboard Orang Tua</a></li>
             <?php endif; ?>
-            
+
             <?php if ($userRole === 'student'): ?>
             <li><a class="dropdown-item" href="./student.php"><i class="bi bi-person me-2"></i>Dashboard Siswa</a></li>
             <?php endif; ?>
-            
+
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="./logout.php"><i class="bi bi-box-arrow-right me-2"></i>Keluar</a></li>
           </ul>
@@ -464,7 +464,7 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
         </div>
       </div>
     </div>
-    
+
     <!-- Mobile layout -->
     <div class="d-md-none">
       <div class="row g-2 mb-2">
@@ -525,14 +525,14 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
         // Keep existing filters
         foreach (['room'=>$room] as $k=>$v) echo '<input type="hidden" name="'.e($k).'" value="'.e($v).'">';
       ?>
-      
+
       <!-- Desktop layout -->
       <div class="row row-cols-auto g-2 align-items-end d-none d-md-flex flex-nowrap">
         <div class="col-auto">
           <label class="form-label">Tanggal</label>
           <input type="date" id="recapDate" name="date" class="form-control" value="<?= e($dateDt->format('Y-m-d')) ?>">
         </div>
-        
+
         <div class="col-auto d-flex align-items-end gap-2">
           <div class="btn-group" role="group">
             <?php
@@ -546,7 +546,7 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
           </div>
         </div>
       </div>
-      
+
       <!-- Mobile layout -->
       <div class="d-md-none">
         <div class="row g-2 mb-2">
@@ -742,8 +742,8 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
       .then(r => r.text())
       .then(html => {
         const doc = new DOMParser().parseFromString(html, 'text/html');
-        const newTable = doc.querySelector('#tableContainer');
-        const curTable = document.querySelector('#tableContainer');
+        const newTable = doc.querySelector('#tableContainerLog') || doc.querySelector('#tableContainerRecap');
+        const curTable = document.querySelector('#tableContainerLog') || document.querySelector('#tableContainerRecap');
         if (newTable && curTable) curTable.innerHTML = newTable.innerHTML;
         const newPager = doc.querySelector('nav .pagination');
         const curPager = document.querySelector('nav .pagination');
@@ -815,7 +815,7 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
       } catch(e){}
     }
     initLast();
-    setInterval(tick, 2000);
+    setInterval(tick, 1000);
   })();
   // Clickable cards -> open status modal with data
   (function(){
@@ -1086,26 +1086,26 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
   // Sync mobile auto-refresh with desktop
   const autoRefreshDesktop = document.getElementById('autoRefresh');
   const autoRefreshMobile = document.getElementById('autoRefreshMobile');
-  
+
   if (autoRefreshDesktop && autoRefreshMobile) {
     autoRefreshDesktop.addEventListener('change', () => {
       autoRefreshMobile.checked = autoRefreshDesktop.checked;
     });
-    
+
     autoRefreshMobile.addEventListener('change', () => {
       autoRefreshDesktop.checked = autoRefreshMobile.checked;
     });
   }
-  
+
   // Sync recap date between desktop and mobile
   const recapDateDesktop = document.getElementById('recapDate');
   const recapDateMobile = document.getElementById('recapDateMobile');
-  
+
   if (recapDateDesktop && recapDateMobile) {
     recapDateDesktop.addEventListener('change', () => {
       recapDateMobile.value = recapDateDesktop.value;
     });
-    
+
     recapDateMobile.addEventListener('change', () => {
       recapDateDesktop.value = recapDateMobile.value;
     });
@@ -1169,5 +1169,5 @@ function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-  
+
 

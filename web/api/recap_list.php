@@ -15,9 +15,11 @@ try {
     $end   = (clone $start)->modify('+1 day');
     $schoolStart = env('SCHOOL_START', '07:15');
     $schoolEnd   = env('SCHOOL_END', '15:00');
+    $lateThreshold = (int) env('LATE_THRESHOLD', 15); // menit
     $requireCheckout = (bool) env('REQUIRE_CHECKOUT', false);
 
     $lateAt = DateTime::createFromFormat('Y-m-d H:i', $start->format('Y-m-d') . ' ' . $schoolStart, $tz);
+    $lateAt->modify('+' . $lateThreshold . ' minutes');
     $endAt  = DateTime::createFromFormat('Y-m-d H:i', $start->format('Y-m-d') . ' ' . $schoolEnd, $tz);
 
     if ($room !== '') {

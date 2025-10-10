@@ -38,8 +38,8 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') 
     $weeklyOffDays = array_values($weeklyOffDays);
     $weeklyOffStr = implode(',', $weeklyOffDays);
 
-    if (!preg_match('/^\d{2}:\d{2}$/', $start) || !preg_match('/^\d{2}:\d{2}$/', $end)) {
-        $err = 'Format jam harus HH:MM (contoh 07:15).';
+    if (!preg_match('/^\d{1,2}:\d{2}$/', $start) || !preg_match('/^\d{1,2}:\d{2}$/', $end)) {
+        $err = 'Format jam harus H:MM atau HH:MM (contoh 7:15 atau 07:15).';
     } elseif ($adminUser === '') {
         $err = 'Username admin tidak boleh kosong.';
     } elseif ($adminPass !== '' && strlen($adminPass) < 6) {
@@ -76,7 +76,7 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') 
             header('Location: settings.php?success=1&msg=' . urlencode($msg));
             exit;
         } else {
-            $err = 'Gagal menyimpan .env.php. Cek izin file.';
+            $err = 'Gagal menyimpan config.php. Cek izin file.';
         }
     }
 }
@@ -270,7 +270,7 @@ if (isset($weeklyOffDays)) {
           </div>
         </div>
       </form>
-      <div class="mt-3 text-muted small">Catatan: perubahan tersimpan ke file <code>web/.env.php</code>.</div>
+      <div class="mt-3 text-muted small">Catatan: perubahan tersimpan ke file <code>web/config.php</code>.</div>
     </div>
   </div>
 

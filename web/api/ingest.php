@@ -52,11 +52,18 @@ try {
         exit;
     }
 
-    $autoCreate = (bool) env('AUTO_CREATE_UNKNOWN', false);
+$autoCreate = (bool) env('AUTO_CREATE_UNKNOWN', false);
 
-    // Inisialisasi NotificationManager
+// Flags performa
+$enableNotifications = (bool) env('ENABLE_NOTIFICATIONS', true);
+$enableAuditLog = (bool) env('ENABLE_AUDIT_LOG', true);
+
+// Inisialisasi NotificationManager hanya jika diperlukan
+$notificationManager = null;
+if ($enableNotifications) {
     require_once __DIR__ . '/../classes/NotificationManager.php';
     $notificationManager = new NotificationManager($pdo, $ENV);
+}
 
     $pdo->beginTransaction();
 
@@ -77,7 +84,10 @@ try {
         }
 
         try {
-            $dt = new DateTime($tsStr, new DateTimeZone(env('APP_TZ', 'Asia/Jakarta')));
+            // Hormati offset dari perangkat jika ada (ISO8601). Jangan pakai TZ langsung saat parsing.
+            $dt = new DateTime($tsStr);
+            // Simpan ke zona waktu aplikasi untuk konsistensi penyimpanan/rekap
+            $dt->setTimezone(new DateTimeZone(env('APP_TZ', 'Asia/Jakarta')));
         } catch (Exception $ex) {
             $errors[] = ['index' => $i, 'error' => 'Invalid ts'];
             continue;
@@ -168,6 +178,25 @@ try {
             }
         }
 
+        // Enforce daily limit (max 1 checkin + 1 checkout per uid per day)
+        if ((bool) env('ENFORCE_DAILY_LIMIT', true)) {
+            $dayStart = new DateTime('today', new DateTimeZone(env('APP_TZ', 'Asia/Jakarta')));
+            $dayEnd = (clone $dayStart)->modify('+1 day');
+
+            $type = strtolower((string)($e['type'] ?? ''));
+            if ($type === 'checkin' || $type === 'checkout') {
+                $jsonPath = $type;
+                $q = $pdo->prepare(
+                    "SELECT COUNT(*) FROM attendance WHERE uid_hex = ? AND ts >= ? AND ts < ? AND JSON_EXTRACT(raw_json, '$.type') = ?"
+                );
+                $q->execute([$uidHex, $dayStart->format('Y-m-d H:i:s'), $dayEnd->format('Y-m-d H:i:s'), $jsonPath]);
+                if ((int)$q->fetchColumn() >= 1) {
+                    $notifications[] = ['index'=>$i,'message'=>"Scan $type kedua di hari yang sama diabaikan"];
+                    continue;
+                }
+            }
+        }
+
         // Cek keterlambatan
         $schoolStart = env('SCHOOL_START', '07:30');
         $lateThreshold = env('LATE_THRESHOLD', 15); // menit
@@ -182,12 +211,14 @@ try {
         if ($isLate) {
             $lateMinutes = $dt->diff($schoolStartTime)->i;
             
-            // Kirim notifikasi terlambat
-            $notificationManager->notifyLateAttendance(
-                $userId, 
-                $userName, 
-                $lateMinutes
-            );
+            // Kirim notifikasi terlambat (opsional)
+            if ($enableNotifications && $notificationManager) {
+                $notificationManager->notifyLateAttendance(
+                    $userId,
+                    $userName,
+                    $lateMinutes
+                );
+            }
         }
 
         // Tambahkan informasi tambahan ke raw_json
@@ -202,19 +233,21 @@ try {
         $insert->execute([$userId, $deviceId, $tsDb, $uidHex, $rawJson]);
         $saved++;
 
-               // Log ke audit
-               $stmt = $pdo->prepare("
-                   INSERT INTO audit_logs (user_id, action, table_name, record_id, new_values, ip_address, created_at) 
-                   VALUES (?, ?, ?, ?, ?, ?, NOW())
-               ");
-               $stmt->execute([
-                   $userId, 
-                   'attendance_scan', 
-                   'attendance',
-                   $userId,
-                   json_encode(['message' => "RFID scan - " . ($isLate ? "Terlambat {$lateMinutes} menit" : "Tepat waktu")]), 
-                   $_SERVER['REMOTE_ADDR'] ?? 'unknown'
-               ]);
+               // Log ke audit (opsional)
+               if ($enableAuditLog) {
+                   $stmt = $pdo->prepare("
+                       INSERT INTO audit_logs (user_id, action, table_name, record_id, new_values, ip_address, created_at) 
+                       VALUES (?, ?, ?, ?, ?, ?, NOW())
+                   ");
+                   $stmt->execute([
+                       $userId,
+                       'attendance_scan',
+                       'attendance',
+                       $userId,
+                       json_encode(['message' => "RFID scan - " . ($isLate ? "Terlambat {$lateMinutes} menit" : "Tepat waktu")]),
+                       $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                   ]);
+               }
 
         // Update last login
         $stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");

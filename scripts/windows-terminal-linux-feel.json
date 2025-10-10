@@ -1,0 +1,23 @@
+{
+  "$schema": "https://aka.ms/terminal-profiles-schema",
+  "profiles": {
+    "defaults": {
+      "font": { "face": "FiraCode Nerd Font" },
+      "colorScheme": "One Half Dark",
+      "cursorShape": "bar",
+      "useAcrylic": true,
+      "acrylicOpacity": 0.90
+    },
+    "list": [
+      {
+        "name": "PowerShell (Linux Feel)",
+        "commandline": "pwsh.exe",
+        "startingDirectory": "%USERPROFILE%",
+        "hidden": false
+      }
+    ]
+  },
+  "schemes": [],
+  "actions": []
+}
+

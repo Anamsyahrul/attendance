@@ -15,14 +15,21 @@
 // API base (no trailing slash), example: http://192.168.1.10/attendance/api
 #define API_BASE "http://192.168.0.106/attendance/web/api"
 
+// Storage & UI behavior
+// Set to 0 jika tidak menggunakan microSD agar tidak ada delay akses SD
+#define USE_SD 0
+// Lama notifikasi ditahan di OLED setelah scan (ms)
+#define DISPLAY_HOLD_MS 300
+
 // Debug logging to Serial
 #define DEBUG 1
 
 // Debounce identical UID scans within N milliseconds
-#define SCAN_DEBOUNCE_MS 2000
+// Debounce scan (ms) untuk mencegah dobel baca kartu (turunkan untuk respons lebih cepat)
+#define SCAN_DEBOUNCE_MS 300
 
 // Max events per POST batch
-#define BATCH_SIZE 20
+#define BATCH_SIZE 1
 
 // Pins (ESP32 default SPI + typical RC522 & SD module)
 // Adjust to your board if needed.

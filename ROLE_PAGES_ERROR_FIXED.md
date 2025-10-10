@@ -304,3 +304,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 **Resolution**: Added PDO initialization and fixed session handling
 
 
+
+
+
+

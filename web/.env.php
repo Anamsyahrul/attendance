@@ -1,12 +1,12 @@
 <?php
 // Copy this file to .env.php and adjust values accordingly.
 return [
-  'DB_HOST' => '127.0.0.1',
+  'DB_HOST' => 'localhost',
   'DB_NAME' => 'attendance',
   'DB_USER' => 'root',
   'DB_PASS' => '',
   'APP_TZ'  => 'Asia/Jakarta',
-  'DEVICE_SECRET' => '',
+  'DEVICE_SECRET' => 'anamganteng123',
   // If true, unknown UID will create a new user with name "Unknown <UID>"
   'AUTO_CREATE_UNKNOWN' => false,
   // School mode settings

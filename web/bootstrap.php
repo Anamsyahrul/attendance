@@ -222,7 +222,12 @@ function selesaikan_status_harian(array $row, DateTimeZone $tz, DateTime $startD
             $statusMasuk = 'Hadir';
         }
         if (!empty($row['last_ts'])) {
-            $statusPulang = 'Pulang';
+            try {
+                $lastDt = new DateTime($row['last_ts'], $tz);
+                $statusPulang = ($lastDt >= $endAt) ? 'Pulang' : 'Bolos';
+            } catch (Throwable $e) {
+                $statusPulang = 'Pulang';
+            }
         } else {
             if ($isPastDay) {
                 $statusPulang = 'Bolos';

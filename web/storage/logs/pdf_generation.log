@@ -34,3 +34,18 @@ operable program or batch file.
 operable program or batch file.
 
 [2025-09-30 22:27:14] Melakukan fallback ke HTML
+[2025-10-01 20:56:04] wkhtmltopdf ditemukan di: C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe
+[2025-10-01 20:56:04] Menjalankan command: "C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe" --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 15mm --margin-right 15mm --encoding UTF-8 --disable-smart-shrinking --print-media-type --no-background --disable-javascript "C:\laragon\www\attendance\web\api/../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html" -
+[2025-10-01 20:56:06] PDF berhasil dibuat, ukuran: 200600 bytes
+[2025-10-01 20:56:26] wkhtmltopdf ditemukan di: C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe
+[2025-10-01 20:56:26] Menjalankan command: "C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe" --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 15mm --margin-right 15mm --encoding UTF-8 --disable-smart-shrinking --print-media-type --no-background --disable-javascript "C:\laragon\www\attendance\web\api/../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html" -
+[2025-10-01 20:56:27] PDF berhasil dibuat, ukuran: 200600 bytes
+[2025-10-01 23:31:09] wkhtmltopdf ditemukan di: C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe
+[2025-10-01 23:31:09] Menjalankan command: "C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe" --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 15mm --margin-right 15mm --encoding UTF-8 --disable-smart-shrinking --print-media-type --no-background --disable-javascript "C:\laragon\www\attendance\web\api/../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html" -
+[2025-10-01 23:31:10] PDF berhasil dibuat, ukuran: 200551 bytes
+[2025-10-01 23:31:16] wkhtmltopdf ditemukan di: C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe
+[2025-10-01 23:31:16] Menjalankan command: "C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe" --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 15mm --margin-right 15mm --encoding UTF-8 --disable-smart-shrinking --print-media-type --no-background --disable-javascript "C:\laragon\www\attendance\web\api/../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html" -
+[2025-10-01 23:31:17] PDF berhasil dibuat, ukuran: 200551 bytes
+[2025-10-01 23:31:26] wkhtmltopdf ditemukan di: C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe
+[2025-10-01 23:31:26] Menjalankan command: "C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe" --page-size A4 --margin-top 20mm --margin-bottom 20mm --margin-left 15mm --margin-right 15mm --encoding UTF-8 --disable-smart-shrinking --print-media-type --no-background --disable-javascript "C:\laragon\www\attendance\web\api/../../PANDUAN_LENGKAP_SISTEM_KEHADIRAN_RFID.html" -
+[2025-10-01 23:31:27] PDF berhasil dibuat, ukuran: 200551 bytes

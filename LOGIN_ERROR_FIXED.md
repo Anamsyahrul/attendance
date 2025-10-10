@@ -208,3 +208,7 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 **Resolution**: Added PDO initialization in login and admin pages
 
 
+
+
+
+
